@@ -1,0 +1,23 @@
+# Default Pacman configuration.
+{
+  "window": {"width": 800, "height": 600},
+  "highscore_filename": "data/highscores.json",
+  "lives": 3,
+  "pacgum": 42,
+  "points_per_pacgum": 10,
+  "points_per_super_pacgum": 50,
+  "points_per_ghost": 200,
+  "level_max_time": 90,
+  "levels": [
+    {"width": 21, "height": 21, "seed": 42},
+    {"width": 21, "height": 21, "seed": 101},
+    {"width": 21, "height": 21, "seed": 102},
+    {"width": 21, "height": 21, "seed": 103},
+    {"width": 21, "height": 21, "seed": 104},
+    {"width": 21, "height": 21, "seed": 105},
+    {"width": 21, "height": 21, "seed": 106},
+    {"width": 21, "height": 21, "seed": 107},
+    {"width": 21, "height": 21, "seed": 108},
+    {"width": 21, "height": 21, "seed": 109}
+  ]
+}
