@@ -19,20 +19,16 @@ def _entry_from_value(value: object) -> Highscore | None:
         return None
     name = value.get("name")
     score = value.get("score")
-    valid_name = (
-        isinstance(name, str)
-        and 0 < len(name.strip()) <= 10
-        and all(
-            character.isalnum() or character == " "
-            for character in name
-        )
-    )
-    valid_score = (
-        isinstance(score, int)
-        and not isinstance(score, bool)
-        and score >= 0
-    )
-    if not valid_name or not valid_score:
+    if not isinstance(name, str):
+        return None
+    if not 0 < len(name.strip()) <= 10:
+        return None
+    if not all(
+        character.isalnum() or character == " "
+        for character in name
+    ):
+        return None
+    if not isinstance(score, int) or isinstance(score, bool) or score < 0:
         return None
     return Highscore(name.strip(), score)
 
