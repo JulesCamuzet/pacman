@@ -1,6 +1,4 @@
-# Pacman configuration.
-# Lines beginning with # are comments and are ignored by the parser.
-# The first level uses seed 42; seed 0 makes the following levels random.
+
 {
   "highscore_filename": "highscores.json",
   "lives": 3,
