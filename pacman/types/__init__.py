@@ -1,4 +1,4 @@
-from typing import TypedDict, TypeGuard
+from typing import TypedDict, TypeGuard, Any
 
 
 ScoreType = TypedDict(
@@ -17,7 +17,7 @@ class TypeChecker():
 
     @staticmethod
     def check_is_score(
-        data: any
+        data: Any
     ) -> TypeGuard[ScoreType]:
         """
         Check if an unknown data is a score.
@@ -29,15 +29,17 @@ class TypeChecker():
             - (bool) if the type is ok
         """
 
+        if not isinstance(data, dict):
+            return False
+
         return (
-            isinstance(data, dict)
-            and isinstance(data.get("name"), str)
+            isinstance(data.get("name"), str)
             and isinstance(data.get("score"), int)
         )
 
     @staticmethod
     def check_is_scores_list(
-        data: any
+        data: Any
     ) -> TypeGuard[list[ScoreType]]:
         """
         Check if an unknown data is a list of scores.

@@ -81,7 +81,7 @@ class MenuPage(PageTitle):
             case _:
                 return PagesEnum.QUIT.value
 
-    def render(self):
+    def render(self) -> int:
         """
         Render the menu page.
         """

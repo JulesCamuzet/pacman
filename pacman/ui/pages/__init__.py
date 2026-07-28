@@ -9,5 +9,6 @@ __all__ = [
     "Page",
     "PagesEnum",
     "PageTitle",
-    "MenuPage"
+    "MenuPage",
+    "ScoresPage"
 ]

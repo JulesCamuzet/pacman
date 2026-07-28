@@ -1,5 +1,4 @@
 from pydantic import BaseModel, ConfigDict
-from pydantic.dataclasses import dataclass
 from enum import Enum
 import pygame
 
@@ -70,6 +69,7 @@ class Page(BaseModel):
 
         self.__display_title()
         self.__display_back()
+        return PagesEnum.QUIT.value
 
 
 class PageTitle(Page):
@@ -79,5 +79,3 @@ class PageTitle(Page):
 
     title: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    

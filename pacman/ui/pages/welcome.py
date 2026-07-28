@@ -77,8 +77,8 @@ class WelcomePage(PageTitle):
         return sprites
 
     def render(
-            self
-        ) -> int:
+        self
+    ) -> int:
         """
         Render the page.
         """

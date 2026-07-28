@@ -1,5 +1,4 @@
 from pydantic import BaseModel, ConfigDict
-from pydantic.dataclasses import dataclass
 import pygame
 
 
@@ -68,9 +67,9 @@ class SpritesChunker(BaseModel):
             )
         ]
         width = (float(crop_coords_pixels[1][0])
-                    - float(crop_coords_pixels[0][0]))
+                 - float(crop_coords_pixels[0][0]))
         height = (float(crop_coords_pixels[1][1])
-                    - float(crop_coords_pixels[0][1]))
+                  - float(crop_coords_pixels[0][1]))
         sprite_rect = pygame.Rect(
             float(crop_coords_pixels[0][0]),
             float(crop_coords_pixels[0][1]),

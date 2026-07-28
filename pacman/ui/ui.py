@@ -1,6 +1,5 @@
 from pydantic import BaseModel, ConfigDict
 import pygame
-from pydantic.dataclasses import dataclass
 
 from pacman.ui.pages import (
     Page,
@@ -48,6 +47,12 @@ class Ui(BaseModel):
         pygame.font.init()
 
         self.__load_sprites()
+
+        if self.sprites_chunker is None:
+            raise Exception(
+                "Sprites chunker not found."
+            )
+
         self.current_page = WelcomePage(
             screen=self.screen,
             sprites_chunker=self.sprites_chunker
@@ -76,18 +81,22 @@ class Ui(BaseModel):
             next (int): The next page
         """
 
-        if self.current_page is None:
+        if (
+            self.current_page is None
+            or self.screen is None
+            or self.sprites_chunker is None
+        ):
             raise Exception(
                 "Init Ui before running it."
             )
 
         clock = SimpleClock()
         running = True
-        curr_page_id = self.current_page.id
+        curr_page_id = self.current_page.id.value
         while running:
             clock.tick(FPS)
             for event in pygame.event.get():
-                if event == pygame.QUIT:
+                if event.type == pygame.QUIT:
                     running = False
 
             next_page_id = self.current_page.render()
@@ -110,3 +119,5 @@ class Ui(BaseModel):
                         running = False
 
                 curr_page_id = next_page_id
+
+        return PagesEnum.QUIT.value

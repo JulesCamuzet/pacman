@@ -1,11 +1,11 @@
 import time
+from pydantic import BaseModel
 
-class SimpleClock:
+
+class SimpleClock(BaseModel):
     """Recreates pygame.time.Clock().tick() using basic primitives."""
 
-    def __init__(self) -> None:
-        """Init the class."""
-        self.last_tick = time.perf_counter()
+    last_tick: float = time.perf_counter()
 
     def tick(self, target_fps: int) -> float:
         """Waits as needed to respect the target FPS.

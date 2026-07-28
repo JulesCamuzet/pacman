@@ -39,7 +39,7 @@ class ScoresPage(PageTitle):
                 raise Exception(
                     "Wrong scores data format."
                 )
-            
+
             dict_content = dict_content[0:10]
             dict_content.sort(
                 key=lambda score: score["score"],
