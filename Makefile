@@ -5,12 +5,11 @@ VENV_PYTHON := $(VENV_BIN)/python
 PIP := $(VENV_PYTHON) -m pip
 FLAKE8 := $(VENV_BIN)/flake8
 MYPY := $(VENV_BIN)/mypy
-PYTEST := $(VENV_BIN)/pytest
+PYTEST := $(VENV_PYTHON) -m pytest
 CONFIG ?= config.json
 
 MAZE_WHEELS := $(wildcard mazegenerator-*.whl)
 MAZE_WHEEL := $(firstword $(MAZE_WHEELS))
-RUNTIME_DEPS := "pydantic>=2,<3" "pygame>=2.6,<3"
 DEV_DEPS := pytest flake8 mypy
 
 .PHONY: all help install check-wheel run debug clean fclean re
@@ -41,7 +40,7 @@ check-wheel:
 
 install: $(VENV_PYTHON) check-wheel
 	$(PIP) install --upgrade pip
-	$(PIP) install $(RUNTIME_DEPS) $(DEV_DEPS)
+	$(PIP) install -r requirements.txt $(DEV_DEPS)
 	$(PIP) install ./$(MAZE_WHEEL)
 
 run: $(VENV_PYTHON)
@@ -76,7 +75,7 @@ test: $(VENV_PYTHON)
 	$(PYTEST)
 
 config-check: $(VENV_PYTHON)
-	$(VENV_PYTHON) -c "import json; from pathlib import Path; text = Path('$(CONFIG)').read_text(encoding='utf-8'); clean = '\n'.join(line for line in text.splitlines() if not line.lstrip().startswith('#')); data = json.loads(clean); assert len(data['levels']) >= 10; print('Configuration OK :', len(data['levels']), 'niveaux')"
+	$(VENV_PYTHON) -c "from pacman.config import load_config; config = load_config('$(CONFIG)'); print('Configuration OK :', len(config.levels), 'niveaux')"
 
 maze-check: $(VENV_PYTHON)
-	$(VENV_PYTHON) -c "from mazegenerator import MazeGenerator; generator = MazeGenerator(size=(21, 21), perfect=False, seed=42); assert len(generator.maze) == 21; assert all(len(row) == 21 for row in generator.maze); print('MazeGenerator OK : carte 21x21, chemin', len(generator.shortest_path))"
+	$(VENV_PYTHON) -c "from pacman.config import LevelConfig; from pacman.maze import generate_maze; maze = generate_maze(LevelConfig()); print('MazeGenerator OK : carte', str(maze.width) + 'x' + str(maze.height), 'chemin', len(maze.shortest_path))"

@@ -1,2 +1,4 @@
-pydantic
-mazegenerator
+pydantic>=2,<3
+pygame>=2.6,<3
+
+# MazeGenerator is installed from the assigned local wheel by Makefile.

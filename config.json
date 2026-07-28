@@ -1,4 +1,5 @@
-
+# Pacman configuration.
+# The first level is fixed; seed 0 makes later levels random.
 {
   "highscore_filename": "highscores.json",
   "lives": 3,
