@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
 class LevelConfig(BaseModel):
