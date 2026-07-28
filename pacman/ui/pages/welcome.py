@@ -4,7 +4,8 @@ from pacman.ui.pages import PagesEnum, PageTitle
 from pacman.constants import (
     WINDOW_WIDTH,
     WELCOME_TEXT,
-    WINDOW_HEIGHT
+    WINDOW_HEIGHT,
+    FPS
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.ui.sprites.map.pacman import BIG_PACMAN_WALK
@@ -81,16 +82,10 @@ class WelcomePage(PageTitle):
         Render the page.
         """
 
-        if self.screen is None or self.sprites_chunker is None:
-            raise Exception(
-                "Init chunker before using it."
-            )
-
         self.pacman_animation = self.__get_pacman_sprites()
         clock = SimpleClock()
         running = True
         while running:
-
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
@@ -100,7 +95,7 @@ class WelcomePage(PageTitle):
             self.display_title()
             self.__display_welcome_text()
             self.__display_pacman()
-            clock.tick(60)
+            clock.tick(FPS)
             pygame.display.flip()
 
         return PagesEnum.QUIT.value

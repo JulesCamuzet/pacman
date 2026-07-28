@@ -15,7 +15,7 @@ class PagesEnum(Enum):
     QUIT = 0
     WELCOME = 1
     MENU = 2
-    CONFIG = 3
+    SETTINGS = 3
     GAME = 4
     ENTER_HIGHSCORE = 5
     SCORES = 6

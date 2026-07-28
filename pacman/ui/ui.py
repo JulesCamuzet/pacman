@@ -1,7 +1,13 @@
-from pydantic import BaseModel, ConfigDict, dataclasses.dataclass
+from pydantic import BaseModel, ConfigDict
 import pygame
+from pydantic.dataclasses import dataclass
 
-from pacman.ui.pages import Page, PagesEnum, WelcomePage
+from pacman.ui.pages import (
+    Page,
+    PagesEnum,
+    WelcomePage,
+    MenuPage
+)
 from pacman.ui.sprites import SpritesChunker
 from pacman.tick import SimpleClock
 from pacman.constants import (
@@ -12,7 +18,8 @@ from pacman.constants import (
     SPRITE_ROWS_HEIGHT,
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
-    WINDOW_TITLE
+    WINDOW_TITLE,
+    FPS
 )
 
 
@@ -68,22 +75,33 @@ class Ui(BaseModel):
             next (int): The next page
         """
 
+        if self.current_page is None:
+            raise Exception(
+                "Init Ui before running it."
+            )
+
         clock = SimpleClock()
         running = True
+        curr_page_id = self.current_page.id
         while running:
-            clock.tick(60)
+            clock.tick(FPS)
             for event in pygame.event.get():
                 if event == pygame.QUIT:
                     running = False
-           
-            next = self.current_page.render()
-            match next:
-                case PagesEnum.QUIT.value:
-                    running = False
-                case PagesEnum.WELCOME.value:
-                    self.current_page = WelcomePage(
-                        screen=self.screen,
-                        sprites_chunker=self.sprites_chunker
-                    )
-                case _:
-                    running = False
+
+            next_page_id = self.current_page.render()
+            if next_page_id != curr_page_id:
+                match next_page_id:
+                    case PagesEnum.QUIT.value:
+                        running = False
+                    case PagesEnum.WELCOME.value:
+                        self.current_page = WelcomePage(
+                            screen=self.screen,
+                            sprites_chunker=self.sprites_chunker
+                        )
+                    case PagesEnum.MENU.value:
+                        self.current_page = MenuPage(screen=self.screen)
+                    case _:
+                        running = False
+
+                curr_page_id = next_page_id
