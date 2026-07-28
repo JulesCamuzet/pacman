@@ -1,6 +1,6 @@
 import pygame
 
-from pacman.ui.pages import PagesEnum, PageTitle
+from pacman.ui.pages import PagesEnum, Page
 from pacman.constants import (
     WINDOW_WIDTH,
     WELCOME_TEXT,
@@ -12,7 +12,7 @@ from pacman.ui.sprites.map.pacman import BIG_PACMAN_WALK
 from pacman.tick import SimpleClock
 
 
-class WelcomePage(PageTitle):
+class WelcomePage(Page):
     """
     Display the Welcome page.
     """

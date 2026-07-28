@@ -1,7 +1,7 @@
 import pygame
 import json
 
-from pacman.ui.pages import PagesEnum, PageTitle
+from pacman.ui.pages import PagesEnum, Page
 from pacman.constants import (
     FPS,
     SCORES_PATH,
@@ -15,7 +15,7 @@ from pacman.types import TypeChecker, ScoreType
 COUNT_PER_PAGES = 20
 
 
-class ScoresPage(PageTitle):
+class ScoresPage(Page):
     """
     Display the scores page.
     """

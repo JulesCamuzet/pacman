@@ -3,11 +3,7 @@
 from pathlib import Path
 
 from pacman.config import GameConfig, ConfigGenerator
-from pacman.maze import (
-    MazeData,
-    MazeGenerationError,
-    PacmanMazeGenerator
-)
+from pacman.maze import MazeData
 from pacman.ui import Ui
 
 
@@ -25,16 +21,9 @@ class AppMain:
         """Load all data required by the future user interface."""
 
         self.config = ConfigGenerator.load_config(self.config_path)
-        try:
-            self.maze = PacmanMazeGenerator.generate_maze(
-                self.config.levels[0]
-            )
-        except MazeGenerationError as error:
-            print(f"Game error: {error}")
-            return False
 
         try:
-            ui = Ui(maze=self.maze, config=self.config)
+            ui = Ui(config=self.config)
             ui.init()
             ui.run()
         except Exception as e:

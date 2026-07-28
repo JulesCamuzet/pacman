@@ -26,3 +26,6 @@ WELCOME_TEXT = "Press space to continue."
 
 # Scores
 SCORES_PATH = "data/scores.json"
+
+# Game
+MAZE_PIXELS_WIDTH = 800

@@ -1,6 +1,6 @@
 import pygame
 
-from pacman.ui.pages import PageTitle, PagesEnum
+from pacman.ui.pages import Page, PagesEnum
 from pacman.tick import SimpleClock
 from pacman.constants import (
     FPS,
@@ -17,7 +17,7 @@ MENU_ITEMS = [
 ]
 
 
-class MenuPage(PageTitle):
+class MenuPage(Page):
     """
     Class of the menu page.
     """

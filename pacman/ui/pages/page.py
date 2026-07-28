@@ -70,12 +70,3 @@ class Page(BaseModel):
         self.__display_title()
         self.__display_back()
         return PagesEnum.QUIT.value
-
-
-class PageTitle(Page):
-    """
-    Page with a title
-    """
-
-    title: str
-    model_config = ConfigDict(arbitrary_types_allowed=True)

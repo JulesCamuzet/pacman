@@ -6,11 +6,11 @@ from pacman.ui.pages import (
     PagesEnum,
     WelcomePage,
     MenuPage,
-    ScoresPage
+    ScoresPage,
+    GamePage
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.tick import SimpleClock
-from pacman.maze import MazeData
 from pacman.config import GameConfig
 from pacman.constants import (
     SPRITES_SHEET_PATH,
@@ -33,7 +33,6 @@ class Ui(BaseModel):
     screen: pygame.Surface | None = None
     current_page: Page | None = None
     sprites_chunker: SpritesChunker | None = None
-    maze: MazeData
     config: GameConfig
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -119,6 +118,11 @@ class Ui(BaseModel):
                         )
                     case PagesEnum.SCORES.value:
                         self.current_page = ScoresPage(screen=self.screen)
+                    case PagesEnum.GAME.value:
+                        self.current_page = GamePage(
+                            screen=self.screen,
+                            config=self.config
+                        )
                     case _:
                         running = False
 

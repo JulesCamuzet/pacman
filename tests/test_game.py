@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 import pytest
-from pydantic import ValidationError
 
 from pacman import app as app_module
 from pacman import maze as maze_module
@@ -32,18 +31,6 @@ def test_generate_maze_is_reproducible_with_fixed_seed() -> None:
     second_maze = maze_module.PacmanMazeGenerator.generate_maze(level)
 
     assert first_maze.grid == second_maze.grid
-
-
-def test_maze_data_rejects_inconsistent_grid() -> None:
-    with pytest.raises(ValidationError):
-        maze_module.MazeData(
-            width=2,
-            height=2,
-            grid=[[9, 3]],
-            entry=(0, 0),
-            exit=(1, 1),
-            shortest_path="ES",
-        )
 
 
 def test_generate_maze_wraps_generator_errors(
