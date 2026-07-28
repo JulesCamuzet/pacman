@@ -6,8 +6,7 @@ from pacman.constants import (
     FPS,
     SCORES_PATH,
     WINDOW_WIDTH,
-    CONTENT_START_Y,
-    CONTENT_END_Y
+    CONTENT_START_Y
 )
 from pacman.tick import SimpleClock
 from pacman.types import TypeChecker, ScoreType
@@ -23,8 +22,8 @@ class ScoresPage(PageTitle):
 
     id: PagesEnum = PagesEnum.SCORES
     title: str = "Scores"
-    current_page: int = 0
     scores: list[ScoreType] = []
+    back_text: str = "Back"
 
     def __get_scores(self) -> None:
         """
@@ -40,7 +39,8 @@ class ScoresPage(PageTitle):
                 raise Exception(
                     "Wrong scores data format."
                 )
-
+            
+            dict_content = dict_content[0:10]
             dict_content.sort(
                 key=lambda score: score["score"],
                 reverse=True
@@ -57,28 +57,6 @@ class ScoresPage(PageTitle):
                 "Wrong scores json format."
             )
 
-    def __handle_keyleft(self) -> None:
-        """
-        Handle arrow up press.
-        """
-
-        pages_count = len(self.scores) // COUNT_PER_PAGES
-        if len(self.scores) % COUNT_PER_PAGES != 0:
-            pages_count += 1
-        if self.current_page > 0:
-            self.current_page -= 1
-    
-    def __handle_keyright(self) -> None:
-        """
-        Handle arrow down press.
-        """
-
-        pages_count = len(self.scores) // COUNT_PER_PAGES
-        if len(self.scores) % COUNT_PER_PAGES != 0:
-            pages_count += 1
-        if self.current_page < pages_count - 1:
-            self.current_page += 1
-
     def __display_scores(self) -> None:
         """
         Display the scores.
@@ -89,19 +67,11 @@ class ScoresPage(PageTitle):
                 "Scores data not found."
             )
 
-        page = self.scores[
-            self.current_page * COUNT_PER_PAGES:
-            min(
-                (self.current_page + 1) * COUNT_PER_PAGES,
-                len(self.scores)
-            )
-        ]
-
         index = 0
-        for score in page:
-            font = pygame.font.SysFont("Arial", 24)
+        for score in self.scores:
+            font = pygame.font.SysFont("Arial", 36)
             color = (255, 255, 255)
-            rank = (index + self.current_page * COUNT_PER_PAGES) + 1
+            rank = index + 1
             text = f"{rank} - {score["name"]}: {score["score"]}"
             text_surface = font.render(text, True, color)
             text_rect = text_surface.get_rect(
@@ -112,26 +82,6 @@ class ScoresPage(PageTitle):
             )
             self.screen.blit(text_surface, text_rect)
             index += 1
-
-    def __display_pagination(self) -> None:
-        """
-        Display the pagination.
-        """
-
-        pages_count = len(self.scores) // COUNT_PER_PAGES
-        if len(self.scores) % COUNT_PER_PAGES != 0:
-            pages_count += 1
-        font = pygame.font.SysFont("Arial", 28)
-        color = (255, 255, 255)
-        text = f"{self.current_page + 1} / {pages_count}"
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect(
-            center=(
-                WINDOW_WIDTH // 2,
-                CONTENT_END_Y
-            )
-        )
-        self.screen.blit(text_surface, text_rect)
 
     def render(
         self
@@ -150,19 +100,14 @@ class ScoresPage(PageTitle):
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_LEFT:
-                        self.__handle_keyleft()
-                    if event.key == pygame.K_RIGHT:
-                        self.__handle_keyright()
                     if event.key == pygame.K_ESCAPE:
                         return PagesEnum.MENU.value
                 if event.type == pygame.QUIT:
                     return PagesEnum.QUIT.value
 
             self.screen.fill((0, 0, 0))
-            self.display_title()
+            super().render()
             self.__display_scores()
-            self.__display_pagination()
             clock.tick(FPS)
             pygame.display.flip()
 

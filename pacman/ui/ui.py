@@ -101,7 +101,9 @@ class Ui(BaseModel):
                             sprites_chunker=self.sprites_chunker
                         )
                     case PagesEnum.MENU.value:
-                        self.current_page = MenuPage(screen=self.screen)
+                        self.current_page = MenuPage(
+                            screen=self.screen
+                        )
                     case PagesEnum.SCORES.value:
                         self.current_page = ScoresPage(screen=self.screen)
                     case _:

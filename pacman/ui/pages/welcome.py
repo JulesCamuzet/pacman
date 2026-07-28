@@ -22,6 +22,7 @@ class WelcomePage(PageTitle):
     sprites_chunker: SpritesChunker
     pacman_animation: list[pygame.Surface] | None = None
     current_animation_frame: int = 0
+    back_text: str = "Quit"
 
     def __display_welcome_text(self) -> None:
         """
@@ -90,11 +91,13 @@ class WelcomePage(PageTitle):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         return PagesEnum.MENU.value
+                    if event.key == pygame.K_ESCAPE:
+                        return PagesEnum.QUIT.value
                 if event.type == pygame.QUIT:
                     return PagesEnum.QUIT.value
 
             self.screen.fill((0, 0, 0))
-            self.display_title()
+            super().render()
             self.__display_welcome_text()
             self.__display_pacman()
             clock.tick(FPS)

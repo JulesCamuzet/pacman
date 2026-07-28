@@ -25,6 +25,7 @@ class MenuPage(PageTitle):
     id: PagesEnum = PagesEnum.MENU
     title: str = "Menu"
     selected_menu_item_index: int = 0
+    back_text: str = "Back"
 
     def __display_menu(self) -> None:
         """
@@ -96,9 +97,11 @@ class MenuPage(PageTitle):
                         self.__handle_keydown()
                     if event.key == pygame.K_RETURN:
                         return self.__handle_enter()
+                    if event.key == pygame.K_ESCAPE:
+                        return PagesEnum.WELCOME.value
 
             self.screen.fill((0, 0, 0))
-            self.display_title()
+            super().render()
             self.__display_menu()
             clock.tick(FPS)
             pygame.display.flip()
