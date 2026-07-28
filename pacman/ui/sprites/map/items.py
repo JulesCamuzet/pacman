@@ -1,0 +1,2 @@
+CHERRY = (2, 3)
+STRAWBERRY = (3, 3)
