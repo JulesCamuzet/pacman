@@ -1,6 +1,5 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, dataclasses.dataclass
 import pygame
-from pydantic.dataclasses import dataclass
 
 from pacman.ui.pages import Page, PagesEnum, WelcomePage
 from pacman.ui.sprites import SpritesChunker
