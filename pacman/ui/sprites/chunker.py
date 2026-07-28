@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.dataclasses import dataclass
 import pygame
 
 
@@ -13,13 +14,14 @@ class SpritesChunker(BaseModel):
     rows_count: int
     columns_width: int
     rows_height: int
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def init(self) -> None:
         """
         Init the chunker.
         """
 
-        self.sheet = pygame.image.load(self.sheet)
+        self.sheet = pygame.image.load(self.sheet_path)
 
     def get_chunk(self, position: list[tuple[int, int]]) -> pygame.Surface:
         """

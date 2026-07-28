@@ -12,6 +12,7 @@ class PagesEnum(Enum):
     Differents pages of the UI.
     """
 
+    QUIT = 0
     WELCOME = 1
     MENU = 2
     CONFIG = 3
@@ -26,12 +27,16 @@ class Page(BaseModel, ABC):
     """
 
     id: PagesEnum
+    screen: pygame.Surface
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod
-    def render(self, screen: pygame.Surface) -> None:
+    def render(self) -> int:
         """
         Render the page.
+
+        Returns:
+            - (int) the id of the next paga
         """
 
         ...
@@ -45,7 +50,7 @@ class PageTitle(Page):
     title: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def display_title(self, screen: pygame.surface) -> None:
+    def display_title(self) -> None:
         """
         Display the title on the page.
         """
@@ -53,4 +58,4 @@ class PageTitle(Page):
         font = pygame.font.SysFont("Arial", 48)
         text_surface = font.render(self.title, True, (255, 255, 255))
         text_rect = text_surface.get_rect(center=(WINDOW_WIDTH // 2, 100))
-        screen.blit(text_surface, text_rect)
+        self.screen.blit(text_surface, text_rect)
