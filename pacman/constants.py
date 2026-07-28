@@ -23,3 +23,6 @@ SPRITE_ROWS_COUNT = 13
 
 # Welcome
 WELCOME_TEXT = "Press space to continue."
+
+# Scores
+SCORES_PATH = "data/scores.json"

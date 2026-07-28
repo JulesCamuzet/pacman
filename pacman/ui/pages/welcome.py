@@ -14,7 +14,7 @@ from pacman.tick import SimpleClock
 
 class WelcomePage(PageTitle):
     """
-    Describe de welcome page state
+    Display the Welcome page.
     """
 
     id: PagesEnum = PagesEnum.WELCOME
@@ -90,6 +90,8 @@ class WelcomePage(PageTitle):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         return PagesEnum.MENU.value
+                if event.type == pygame.QUIT:
+                    return PagesEnum.QUIT.value
 
             self.screen.fill((0, 0, 0))
             self.display_title()
