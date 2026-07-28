@@ -2,9 +2,13 @@
 
 from pathlib import Path
 
-from .config import GameConfig, load_config
-from .highscores import HighscoreEntry, load_highscores
-from .maze import MazeData, MazeGenerationError, generate_maze
+from pacman.config import GameConfig, ConfigGenerator
+from pacman.maze import (
+    MazeData,
+    MazeGenerationError,
+    PacmanMazeGenerator
+)
+from pacman.ui import Ui
 
 
 class AppMain:
@@ -16,26 +20,24 @@ class AppMain:
         self.config_path = Path(config_path)
         self.config: GameConfig | None = None
         self.maze: MazeData | None = None
-        self.highscores: list[HighscoreEntry] = []
 
     def run(self) -> bool:
         """Load all data required by the future user interface."""
 
-        self.config = load_config(self.config_path)
+        self.config = ConfigGenerator.load_config(self.config_path)
         try:
-            self.maze = generate_maze(self.config.levels[0])
+            self.maze = PacmanMazeGenerator.generate_maze(
+                self.config.levels[0]
+            )
         except MazeGenerationError as error:
             print(f"Game error: {error}")
             return False
 
-        highscore_path = (
-            self.config_path.parent
-            / self.config.highscore_filename
-        )
-        self.highscores = load_highscores(highscore_path)
-        print(
-            "Game data ready: "
-            f"{self.maze.width}x{self.maze.height} maze, "
-            f"{len(self.highscores)} highscores."
-        )
+        try:
+            ui = Ui(maze=self.maze, config=self.config)
+            ui.init()
+            ui.run()
+        except Exception as e:
+            print(e)
+
         return True

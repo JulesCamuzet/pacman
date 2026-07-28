@@ -14,7 +14,7 @@ from pacman.config import LevelConfig
 def test_generate_maze_returns_data_with_requested_dimensions() -> None:
     level = LevelConfig(width=21, height=19, seed=42)
 
-    maze = maze_module.generate_maze(level)
+    maze = maze_module.PacmanMazeGenerator.generate_maze(level)
 
     assert maze.width == 21
     assert maze.height == 19
@@ -28,8 +28,8 @@ def test_generate_maze_returns_data_with_requested_dimensions() -> None:
 def test_generate_maze_is_reproducible_with_fixed_seed() -> None:
     level = LevelConfig(width=21, height=21, seed=42)
 
-    first_maze = maze_module.generate_maze(level)
-    second_maze = maze_module.generate_maze(level)
+    first_maze = maze_module.PacmanMazeGenerator.generate_maze(level)
+    second_maze = maze_module.PacmanMazeGenerator.generate_maze(level)
 
     assert first_maze.grid == second_maze.grid
 
@@ -59,7 +59,7 @@ def test_generate_maze_wraps_generator_errors(
         maze_module.MazeGenerationError,
         match="Unable to generate maze",
     ):
-        maze_module.generate_maze(LevelConfig())
+        maze_module.PacmanMazeGenerator.generate_maze(LevelConfig())
 
 
 def test_app_prepares_data_for_the_user_interface(
@@ -89,7 +89,6 @@ def test_app_prepares_data_for_the_user_interface(
     assert app.config is not None
     assert app.maze is not None
     assert app.maze.width == 21
-    assert app.highscores[0].name == "Alex"
 
 
 def test_app_handles_generator_error(

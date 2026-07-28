@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pacman.config import load_config
+from pacman.config import ConfigGenerator
 
 
 def test_load_config_accepts_comments_and_unknown_keys(
@@ -18,7 +18,7 @@ def test_load_config_accepts_comments_and_unknown_keys(
         encoding="utf-8",
     )
 
-    config = load_config(config_path)
+    config = ConfigGenerator.load_config(config_path)
 
     assert config.lives == 5
     assert config.levels[0].width == 25
@@ -44,7 +44,7 @@ def test_load_config_replaces_invalid_values_with_defaults(
         encoding="utf-8",
     )
 
-    config = load_config(config_path)
+    config = ConfigGenerator.load_config(config_path)
 
     assert config.lives == 3
     assert config.points_per_pacgum == 10
@@ -57,7 +57,7 @@ def test_load_config_replaces_invalid_values_with_defaults(
 def test_load_config_returns_defaults_when_file_is_missing(
     tmp_path: Path,
 ) -> None:
-    config = load_config(tmp_path / "missing.json")
+    config = ConfigGenerator.load_config(tmp_path / "missing.json")
 
     assert config.lives == 3
     assert config.highscore_filename == "highscores.json"
@@ -70,7 +70,7 @@ def test_load_config_returns_defaults_for_broken_json(
     config_path = tmp_path / "broken.json"
     config_path.write_text("{broken", encoding="utf-8")
 
-    config = load_config(config_path)
+    config = ConfigGenerator.load_config(config_path)
 
     assert config.lives == 3
     assert len(config.levels) == 10

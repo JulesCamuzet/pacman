@@ -3,7 +3,12 @@
 import json
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError
+)
 
 
 class LevelConfig(BaseModel):
@@ -141,26 +146,32 @@ def _normalize_config(data: dict[str, object]) -> dict[str, object]:
     }
 
 
-def load_config(filepath: str | Path) -> GameConfig:
-    """Load a commented JSON file and return a safe configuration."""
+class ConfigGenerator(BaseModel):
+    """
+    Generate the configuration.
+    """
 
-    path = Path(filepath)
-    try:
-        text = path.read_text(encoding="utf-8")
-        clean_text = "\n".join(
-            line
-            for line in text.splitlines()
-            if not line.lstrip().startswith("#")
-        )
-        raw_data = json.loads(clean_text)
-        if not isinstance(raw_data, dict):
-            raise ValueError("the JSON root must be an object")
-    except (OSError, json.JSONDecodeError, ValueError) as error:
-        _warning(f"cannot load '{path}': {error}; using defaults.")
-        return GameConfig()
+    @staticmethod
+    def load_config(filepath: str | Path) -> GameConfig:
+        """Load a commented JSON file and return a safe configuration."""
 
-    try:
-        return GameConfig.model_validate(_normalize_config(raw_data))
-    except ValidationError as error:
-        _warning(f"validation failed: {error}; using defaults.")
-        return GameConfig()
+        path = Path(filepath)
+        try:
+            text = path.read_text(encoding="utf-8")
+            clean_text = "\n".join(
+                line
+                for line in text.splitlines()
+                if not line.lstrip().startswith("#")
+            )
+            raw_data = json.loads(clean_text)
+            if not isinstance(raw_data, dict):
+                raise ValueError("the JSON root must be an object")
+        except (OSError, json.JSONDecodeError, ValueError) as error:
+            _warning(f"cannot load '{path}': {error}; using defaults.")
+            return GameConfig()
+
+        try:
+            return GameConfig.model_validate(_normalize_config(raw_data))
+        except ValidationError as error:
+            _warning(f"validation failed: {error}; using defaults.")
+            return GameConfig()

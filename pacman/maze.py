@@ -48,28 +48,34 @@ class MazeData(BaseModel):
         return self
 
 
-def generate_maze(level: LevelConfig) -> MazeData:
-    """Generate and validate one maze from a level configuration."""
+class PacmanMazeGenerator(BaseModel):
+    """
+    Generate the maze data.
+    """
 
-    try:
-        generator = MazeGenerator(
-            size=(level.width, level.height),
-            perfect=False,
-            seed=level.seed,
-        )
-        shortest_path = generator.shortest_path
-        if not isinstance(shortest_path, str):
-            raise ValueError("the generator returned no path")
+    @staticmethod
+    def generate_maze(level: LevelConfig) -> MazeData:
+        """Generate and validate one maze from a level configuration."""
 
-        return MazeData(
-            width=level.width,
-            height=level.height,
-            grid=generator.maze,
-            entry=generator.maze_entry,
-            exit=generator.maze_exit,
-            shortest_path=shortest_path,
-        )
-    except Exception as error:
-        raise MazeGenerationError(
-            f"Unable to generate maze: {error}"
-        ) from error
+        try:
+            generator = MazeGenerator(
+                size=(level.width, level.height),
+                perfect=False,
+                seed=level.seed,
+            )
+            shortest_path = generator.shortest_path
+            if not isinstance(shortest_path, str):
+                raise ValueError("the generator returned no path")
+
+            return MazeData(
+                width=level.width,
+                height=level.height,
+                grid=generator.maze,
+                entry=generator.maze_entry,
+                exit=generator.maze_exit,
+                shortest_path=shortest_path,
+            )
+        except Exception as error:
+            raise MazeGenerationError(
+                f"Unable to generate maze: {error}"
+            ) from error

@@ -10,6 +10,8 @@ from pacman.ui.pages import (
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.tick import SimpleClock
+from pacman.maze import MazeData
+from pacman.config import GameConfig
 from pacman.constants import (
     SPRITES_SHEET_PATH,
     SPRITE_COLUMN_WIDTH,
@@ -31,6 +33,8 @@ class Ui(BaseModel):
     screen: pygame.Surface | None = None
     current_page: Page | None = None
     sprites_chunker: SpritesChunker | None = None
+    maze: MazeData
+    config: GameConfig
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def init(self) -> None:
