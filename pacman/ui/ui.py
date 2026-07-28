@@ -6,7 +6,8 @@ from pacman.ui.pages import (
     Page,
     PagesEnum,
     WelcomePage,
-    MenuPage
+    MenuPage,
+    ScoresPage
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.tick import SimpleClock
@@ -101,6 +102,8 @@ class Ui(BaseModel):
                         )
                     case PagesEnum.MENU.value:
                         self.current_page = MenuPage(screen=self.screen)
+                    case PagesEnum.SCORES.value:
+                        self.current_page = ScoresPage(screen=self.screen)
                     case _:
                         running = False
 
