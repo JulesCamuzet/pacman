@@ -65,9 +65,9 @@ class GamePage(Page):
             DrawTools.draw_line(
                 self.screen,
                 col * square_width + CONTENT_START_X,
-                row * square_width + CONTENT_START_Y,
+                (row + 1) * square_width + CONTENT_START_Y,
                 (col + 1) * square_width + CONTENT_START_X,
-                row * square_width + CONTENT_START_Y,
+                (row + 1) * square_width + CONTENT_START_Y,
                 (103, 42, 49)
             )
         if square.left:
