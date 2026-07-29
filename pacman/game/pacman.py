@@ -22,3 +22,4 @@ class Pacman(BaseModel):
     y: int
     direction: Direction = Direction.RIGHT
     next_direction: Direction = Direction.RIGHT
+    is_dying: bool = False

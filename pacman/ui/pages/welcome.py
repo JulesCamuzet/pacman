@@ -5,7 +5,8 @@ from pacman.constants import (
     WINDOW_WIDTH,
     WELCOME_TEXT,
     WINDOW_HEIGHT,
-    FPS
+    FPS,
+    FRAME_SLOWER
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.ui.sprites.map.pacman import BIG_PACMAN_WALK
@@ -45,7 +46,7 @@ class WelcomePage(Page):
 
         if (self.current_animation_frame < 0
             or self.current_animation_frame
-                // 5 >= len(self.pacman_animation)):
+                // FRAME_SLOWER >= len(self.pacman_animation)):
             self.current_animation_frame = 0
 
         current_sprite = self.pacman_animation[

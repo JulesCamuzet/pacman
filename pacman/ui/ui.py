@@ -121,7 +121,8 @@ class Ui(BaseModel):
                     case PagesEnum.GAME.value:
                         self.current_page = GamePage(
                             screen=self.screen,
-                            config=self.config
+                            config=self.config,
+                            sprites_chunker=self.sprites_chunker
                         )
                     case _:
                         running = False
