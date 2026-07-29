@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from enum import Enum
-import traceback
 
 from pacman.game.ghosts import (
     Ghost,
@@ -61,16 +60,16 @@ class GameState(BaseModel):
                 square = self.maze.grid[row][col]
                 mid_height = row * square_width + square_width // 2
                 mid_width = col * square_width + square_width // 2
-                if square.top:
+                if not square.top:
                     for y in range(row * square_width, mid_height + 1):
                         rail.add((mid_width, y))
-                if square.right:
-                    for x in range(mid_width, col * (square_width + 1) + 1):
+                if not square.right:
+                    for x in range(mid_width, (col + 1) * square_width + 1):
                         rail.add((x, mid_height))
-                if square.bottom:
-                    for y in range(mid_height, row * square_width):
+                if not square.bottom:
+                    for y in range(mid_height, (row + 1) * square_width + 1):
                         rail.add((mid_width, y))
-                if square.left:
+                if not square.left:
                     for x in range(col * square_width, mid_width + 1):
                         rail.add((x, mid_height))
         self.rail = rail
@@ -80,12 +79,9 @@ class GameState(BaseModel):
         Init the game state
         """
 
-        try:
-            self.maze = PacmanMazeGenerator.generate_maze(
-                self.config.levels[0]
-            )
-        except Exception:
-            print(traceback.format_exc())
+        self.maze = PacmanMazeGenerator.generate_maze(
+            self.config.levels[0]
+        )
         self.__generate_rail()
 
     def __update_pacman(self) -> None:

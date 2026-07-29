@@ -23,6 +23,8 @@ class SimpleClock(BaseModel):
 
         if elapsed < target_frame_time:
             time.sleep(target_frame_time - elapsed)
+        else:
+            print("lag")
 
         now = time.perf_counter()
         dt = now - self.last_tick
