@@ -102,5 +102,5 @@ class DisplayMaze(BaseModel):
         Display the maze.
         """
 
-        self.__display_rails()
+        # self.__display_rails()
         self.__display_walls()

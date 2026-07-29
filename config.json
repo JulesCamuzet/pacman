@@ -10,8 +10,8 @@
   "level_max_time": 90,
   "levels": [
     {
-      "width": 10,
-      "height": 10,
+      "width": 21,
+      "height": 21,
       "seed": 42
     },
     {

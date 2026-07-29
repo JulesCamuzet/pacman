@@ -1,5 +1,5 @@
 # General
-FPS = 200
+FPS = 60
 
 # Window
 WINDOW_WIDTH = 1000

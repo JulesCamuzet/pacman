@@ -13,6 +13,14 @@ class Direction(Enum):
     LEFT = 3
 
 
+DELTAS = {
+    Direction.UP: (0, -1),
+    Direction.RIGHT: (1, 0),
+    Direction.DOWN: (0, 1),
+    Direction.LEFT: (-1, 0)
+}
+
+
 class Pacman(BaseModel):
     """
     Describe the pacman state.
@@ -26,6 +34,7 @@ class Pacman(BaseModel):
     next_direction: Direction = Direction.RIGHT
     is_dying: bool = False
     was_dying: bool = False
+    speed: int = 3
 
     def update(self, rail: set[tuple[int, int]]) -> None:
         """
@@ -43,47 +52,31 @@ class Pacman(BaseModel):
             self.y = self.start_y
             return
 
-        if (
-            (self.next_direction == Direction.UP)
-            and (self.x, self.y - 1) in rail
-        ):
-            self.direction = Direction.UP
-            self.y -= 1
-        elif (
-            self.next_direction == Direction.RIGHT
-            and (self.x + 1, self.y) in rail
-        ):
-            self.direction = Direction.RIGHT
-            self.x += 1
-        elif (
-            self.next_direction == Direction.DOWN
-            and (self.x, self.y + 1) in rail
-        ):
-            self.direction = Direction.DOWN
-            self.y += 1
-        elif (
-            self.next_direction == Direction.LEFT
-            and (self.x - 1, self.y) in rail
-        ):
-            self.direction = Direction.LEFT
-            self.x -= 1
-        elif (
-            (self.direction == Direction.UP)
-            and (self.x, self.y - 1) in rail
-        ):
-            self.y -= 1
-        elif (
-            self.direction == Direction.RIGHT
-            and (self.x + 1, self.y) in rail
-        ):
-            self.x += 1
-        elif (
-            self.direction == Direction.DOWN
-            and (self.x, self.y + 1) in rail
-        ):
-            self.y += 1
-        elif (
-            self.direction == Direction.LEFT
-            and (self.x - 1, self.y) in rail
-        ):
-            self.x -= 1
+        if self.direction != self.next_direction:
+            curr_dx, curr_dy = DELTAS[self.direction]
+            wanted_dx, wanted_dy = DELTAS[self.next_direction]
+            curr_len = self.speed
+            while curr_len >= 0:
+                target_x, target_y = (self.x + curr_dx * curr_len,
+                                      self.y + curr_dy * curr_len)
+
+                if (target_x + wanted_dx, target_y + wanted_dy) in rail:
+                    self.direction = self.next_direction
+                    self.x = target_x
+                    self.y = target_y
+                    return
+
+                curr_len -= 1
+
+        dx, dy = DELTAS[self.direction]
+        curr_len = self.speed
+        while curr_len >= 0:
+            target_x, target_y = (self.x + dx * curr_len,
+                                  self.y + dy * curr_len)
+
+            if (target_x, target_y) in rail:
+                self.x = target_x
+                self.y = target_y
+                return
+
+            curr_len -= 1
