@@ -50,7 +50,7 @@ class WelcomePage(Page):
             self.current_animation_frame = 0
 
         current_sprite = self.pacman_animation[
-            self.current_animation_frame // 5
+            self.current_animation_frame // FRAME_SLOWER
         ]
         self.screen.blit(
             current_sprite,

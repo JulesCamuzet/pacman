@@ -11,7 +11,9 @@ from pacman.game.ghosts import (
 from pacman.game.pacman import Pacman
 from pacman.config import GameConfig
 from pacman.maze import MazeData, PacmanMazeGenerator
-from pacman.constants import MAZE_PIXELS_WIDTH
+from pacman.constants import (
+    MAZE_PIXELS_WIDTH
+)
 
 
 class UpdateResult(Enum):
@@ -31,10 +33,9 @@ class GameState(BaseModel):
 
     config: GameConfig
     maze: MazeData | None = None
-    maze_rail: set[tuple[int, int]] | None = None
     level: int = 1
     score: int = 0
-    pacman: Pacman = Pacman(x=0, y=0)
+    pacman: Pacman = Pacman(x=0, y=0, start_x=0, start_y=0)
     ghosts: list[Ghost] = [
         PinkGhost(),
         BlueGhost(),
@@ -74,6 +75,44 @@ class GameState(BaseModel):
                         rail.add((x, mid_height))
         self.rail = rail
 
+    def __init_pacman_position(self) -> None:
+        """
+        Init the start position of pacman.
+        """
+
+        if self.maze is None:
+            raise Exception(
+                "Maze not found, init GameState before using it."
+            )
+
+        x = self.maze.width // 2
+        y = self.maze.height // 2
+        main = (x, y)
+        top = (x, y - 1)
+        right = (x + 1, y)
+        bot = (x, y + 1)
+        left = (x - 1, y)
+        if not self.maze.grid[main[1]][main[0]].is_locked():
+            x, y = main
+        elif not self.maze.grid[top[1]][top[0]].is_locked():
+            x, y = top
+        elif not self.maze.grid[right[1]][right[0]].is_locked():
+            x, y = right
+        elif not self.maze.grid[bot[1]][bot[0]].is_locked():
+            x, y = bot
+        elif not self.maze.grid[left[1]][left[0]].is_locked():
+            x, y = left
+        else:
+            raise Exception("Unable to find start position for pacman.")
+
+        square_width = MAZE_PIXELS_WIDTH // self.maze.width
+        pixels_x = x * square_width + square_width // 2
+        pixels_y = y * square_width + square_width // 2
+        self.pacman.x = pixels_x
+        self.pacman.y = pixels_y
+        self.pacman.start_x = pixels_x
+        self.pacman.start_y = pixels_y
+
     def init(self) -> None:
         """
         Init the game state
@@ -82,17 +121,19 @@ class GameState(BaseModel):
         self.maze = PacmanMazeGenerator.generate_maze(
             self.config.levels[0]
         )
+        self.__init_pacman_position()
         self.__generate_rail()
-
-    def __update_pacman(self) -> None:
-        """
-        Update the pacman state.
-        """
-        pass
 
     def update(self) -> UpdateResult:
         """
         Update the game state.
         """
+
+        if self.rail is None:
+            raise Exception(
+                "Init GameState before using it."
+            )
+
+        self.pacman.update(self.rail)
 
         return UpdateResult.CONTINUE

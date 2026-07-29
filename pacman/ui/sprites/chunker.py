@@ -44,7 +44,6 @@ class SpritesChunker(BaseModel):
                 x < 0 or x >= self.columns_count
                 or y < 0 or y >= self.rows_count
             ):
-                print("bite")
                 raise Exception(
                     "Wrong position coordinates while chunking sprites."
                 )

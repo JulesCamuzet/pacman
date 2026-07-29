@@ -22,6 +22,16 @@ class MazeSquare(BaseModel):
     bottom: bool
     left: bool
 
+    def is_locked(self) -> bool:
+        """
+        Return if the square is fully locked.
+
+        Returns:
+            - bool: if the square is fully locked.
+        """
+
+        return self.top and self.left and self.right and self.bottom
+
 
 class MazeData(BaseModel):
     """Validated maze data consumed by the user interface."""
