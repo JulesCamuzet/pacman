@@ -9,6 +9,7 @@ from pacman.game import GameState
 from pacman.game.pacman import Direction
 from pacman.ui.pages.game.maze import DisplayMaze
 from pacman.ui.pages.game.pacman import DisplayPacman
+from pacman.ui.pages.game.pause import DisplayPause
 
 
 class GamePage(Page):
@@ -71,6 +72,7 @@ class GamePage(Page):
             sprites_chunker=self.sprites_chunker
         )
         pacman_displayer.init()
+        pause_displayer = DisplayPause(screen=self.screen)
 
         while running:
             for event in pygame.event.get():
@@ -80,6 +82,12 @@ class GamePage(Page):
                     return PagesEnum.QUIT.value
             self.screen.fill((0, 0, 0))
             super().render()
+            if self.pause:
+                res = pause_displayer.render()
+                if res == 0:
+                    self.pause = False
+                else:
+                    return PagesEnum.MENU.value
             self.game_state.update()
             maze_displayer.display_maze()
             pacman_displayer.display_pacman()
