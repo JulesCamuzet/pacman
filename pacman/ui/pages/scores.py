@@ -1,15 +1,15 @@
 import pygame
-import json
 
 from pacman.ui.pages import PagesEnum, Page
 from pacman.constants import (
     FPS,
-    SCORES_PATH,
     WINDOW_WIDTH,
     CONTENT_START_Y
 )
 from pacman.tick import SimpleClock
-from pacman.types import TypeChecker, ScoreType
+from pacman.types import ScoreType
+from pacman.config import GameConfig
+from pacman.scores import HighscoresManager
 
 
 COUNT_PER_PAGES = 20
@@ -24,38 +24,7 @@ class ScoresPage(Page):
     title: str = "Scores"
     scores: list[ScoreType] = []
     back_text: str = "Back"
-
-    def __get_scores(self) -> None:
-        """
-        Get the scores from the json file.
-        """
-
-        try:
-            with open(SCORES_PATH, 'r') as f:
-                content = f.read()
-
-            dict_content = json.loads(content)
-            if not TypeChecker.check_is_scores_list(dict_content):
-                raise Exception(
-                    "Wrong scores data format."
-                )
-
-            dict_content = dict_content[0:10]
-            dict_content.sort(
-                key=lambda score: score["score"],
-                reverse=True
-            )
-            self.scores = dict_content
-
-        except OSError:
-            raise Exception(
-                "Can not read the scores files."
-            )
-
-        except json.JSONDecodeError:
-            raise Exception(
-                "Wrong scores json format."
-            )
+    config: GameConfig
 
     def __display_scores(self) -> None:
         """
@@ -92,7 +61,8 @@ class ScoresPage(Page):
 
         clock = SimpleClock()
         running = True
-        self.__get_scores()
+        highscores_manager = HighscoresManager(config=self.config)
+        self.scores = highscores_manager.get_highscores()
         if self.scores is None:
             raise Exception(
                 "Scores data not found."

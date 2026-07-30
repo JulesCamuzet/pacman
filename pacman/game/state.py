@@ -12,7 +12,11 @@ from pacman.game.ghosts import (
 from pacman.game.pacman import Pacman
 from pacman.config import GameConfig
 from pacman.maze import MazeData, PacmanMazeGenerator
-from pacman.constants import MAZE_PIXELS_WIDTH
+from pacman.constants import (
+    MAZE_PIXELS_WIDTH,
+    SPEED,
+    FPS
+)
 
 
 class UpdateResult(Enum):
@@ -156,6 +160,21 @@ class GameState(BaseModel):
         self.pacman.start_x = pixels_x
         self.pacman.start_y = pixels_y
 
+    def __init_pacman_speed(self) -> None:
+        """
+        Init pacman speed based on the maze size.
+        """
+
+        if self.maze is None:
+            raise Exception(
+                "Init GameState before using it."
+            )
+
+        square_width = MAZE_PIXELS_WIDTH // self.maze.width
+        dist_per_sec = square_width * SPEED
+        speed = int(dist_per_sec // FPS)
+        self.pacman.speed = speed
+
     def init(self) -> None:
         """
         Init the game state
@@ -167,7 +186,25 @@ class GameState(BaseModel):
         self.__init_pacman_position()
         self.__generate_rail()
         self.__generate_pacgums()
+        self.__init_pacman_speed()
         self.lives = self.config.lives
+
+    def next_level(self) -> int:
+        """
+        Go to the next level.
+        """
+
+        if self.level == len(self.config.levels):
+            return 1
+        self.level += 1
+        self.maze = PacmanMazeGenerator.generate_maze(
+            self.config.levels[self.level - 1]
+        )
+        self.__init_pacman_position()
+        self.__generate_rail()
+        self.__generate_pacgums()
+        self.__init_pacman_speed()
+        return 0
 
     def update(self) -> UpdateResult:
         """

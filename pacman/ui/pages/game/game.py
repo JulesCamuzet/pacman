@@ -11,6 +11,8 @@ from pacman.ui.pages.game.maze import DisplayMaze
 from pacman.ui.pages.game.pacman import DisplayPacman
 from pacman.ui.pages.game.pause import DisplayPause
 from pacman.ui.pages.game.dashboard import DisplayDashboard
+from pacman.ui.pages.game.next_lvl_modal import DisplayNextLvlModal
+from pacman.ui.pages.game.highscore import DisplayHighscoreModal
 
 
 class GamePage(Page):
@@ -77,6 +79,15 @@ class GamePage(Page):
         dashboard_displayer = DisplayDashboard(
             screen=self.screen
         )
+        next_lvl_modal_displayer = DisplayNextLvlModal(
+            screen=self.screen,
+            game_state=self.game_state
+        )
+        highscore_modal_renderer = DisplayHighscoreModal(
+            screen=self.screen,
+            game_state=self.game_state
+        )
+        highscore_modal_renderer.init()
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -95,6 +106,12 @@ class GamePage(Page):
             maze_displayer.display_maze()
             pacman_displayer.display_pacman()
             dashboard_displayer.display_dashboard(self.game_state)
+            if (len(self.game_state.super_pacgums) == 0
+                    and len(self.game_state.pacgums) == 0):
+                next_lvl_modal_displayer.display_modal()
+                if self.game_state.next_level() == 1:
+                    highscore_modal_renderer.display_modal()
+                    return PagesEnum.MENU.value
             clock.tick(FPS)
             pygame.display.flip()
 

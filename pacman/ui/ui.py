@@ -117,7 +117,10 @@ class Ui(BaseModel):
                             screen=self.screen
                         )
                     case PagesEnum.SCORES.value:
-                        self.current_page = ScoresPage(screen=self.screen)
+                        self.current_page = ScoresPage(
+                            screen=self.screen,
+                            config=self.config
+                        )
                     case PagesEnum.GAME.value:
                         self.current_page = GamePage(
                             screen=self.screen,

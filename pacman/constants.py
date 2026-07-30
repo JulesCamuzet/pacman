@@ -20,14 +20,10 @@ SPRITE_COLUMNS_COUNT = 14
 SPRITE_ROWS_COUNT = 13
 FRAME_SLOWER = 20
 
-# Pages
-
 # Welcome
 WELCOME_TEXT = "Press space to continue."
-
-# Scores
-SCORES_PATH = "data/scores.json"
 
 # Game
 MAZE_PIXELS_WIDTH = 800
 WALLS_COLOR = (255, 255, 255)
+SPEED = 7.5  # Squares per second

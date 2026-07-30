@@ -42,7 +42,7 @@ class Pacman(BaseModel):
     next_direction: Direction = Direction.RIGHT
     is_dying: bool = False
     was_dying: bool = False
-    speed: int = 3
+    speed: int = 10
 
     def __check_packgums(
         self,
@@ -60,7 +60,6 @@ class Pacman(BaseModel):
 
         if (x, y) in self.pacgums:
             self.pacgums.remove((x, y))
-            print("yo")
             state.score += state.config.points_per_pacgum
 
         if (x, y) in self.super_pacgums:

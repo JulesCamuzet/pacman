@@ -1,42 +1,42 @@
 [
     {
-        "name": "Anna",
-        "score": 9979
-    },
-    {
-        "name": "Louise",
-        "score": 9704
-    },
-    {
-        "name": "Zoe",
-        "score": 9622
-    },
-    {
-        "name": "Enzo",
-        "score": 9085
-    },
-    {
-        "name": "Timeo",
-        "score": 8941
-    },
-    {
-        "name": "Mathis",
-        "score": 8875
-    },
-    {
-        "name": "Arthur",
-        "score": 8850
-    },
-    {
-        "name": "Yanis",
-        "score": 8578
-    },
-    {
-        "name": "Axel",
-        "score": 8353
+        "name": "yoman",
+        "score": 210
     },
     {
         "name": "Ines",
-        "score": 8218
+        "score": 10
+    },
+    {
+        "name": "Axel",
+        "score": 9
+    },
+    {
+        "name": "Yanis",
+        "score": 8
+    },
+    {
+        "name": "Arthur",
+        "score": 7
+    },
+    {
+        "name": "Mathis",
+        "score": 6
+    },
+    {
+        "name": "Timeo",
+        "score": 5
+    },
+    {
+        "name": "Enzo",
+        "score": 4
+    },
+    {
+        "name": "Zoe",
+        "score": 3
+    },
+    {
+        "name": "Louise",
+        "score": 2
     }
 ]
