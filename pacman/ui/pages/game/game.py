@@ -77,7 +77,8 @@ class GamePage(Page):
         pacman_displayer.init()
         pause_displayer = DisplayPause(screen=self.screen)
         dashboard_displayer = DisplayDashboard(
-            screen=self.screen
+            screen=self.screen,
+            game_state=self.game_state
         )
         next_lvl_modal_displayer = DisplayNextLvlModal(
             screen=self.screen,

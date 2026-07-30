@@ -11,7 +11,6 @@ from pacman.ui.sprites.map.pacman import (
     PACMAN_DIE
 )
 from pacman.constants import (
-    CONTENT_START_X,
     CONTENT_START_Y,
     FRAME_SLOWER
 )
@@ -113,7 +112,7 @@ class DisplayPacman(BaseModel):
             frame,
             (
                 (self.game_state.pacman.x
-                 + CONTENT_START_X - frame.get_width() // 2),
+                 + self.game_state.maze_offset - frame.get_width() // 2),
                 (self.game_state.pacman.y
                  + CONTENT_START_Y - frame.get_height() // 2)
             )

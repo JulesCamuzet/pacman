@@ -5,9 +5,7 @@ from pacman.game import GameState
 from pacman.maze import MazeSquare
 from pacman.tools.draw import DrawTools
 from pacman.constants import (
-    CONTENT_START_X,
     CONTENT_START_Y,
-    MAZE_PIXELS_WIDTH,
     WALLS_COLOR
 )
 
@@ -31,7 +29,7 @@ class DisplayMaze(BaseModel):
         l_rail = list(self.game_state.rail)
         for x, y in l_rail:
             self.screen.set_at(
-                (x + CONTENT_START_X,
+                (x + self.game_state.maze_offset,
                     y + CONTENT_START_Y),
                 (255, 255, 255)
             )
@@ -50,36 +48,36 @@ class DisplayMaze(BaseModel):
         if square.top:
             DrawTools.draw_line(
                 self.screen,
-                col * square_width + CONTENT_START_X,
+                col * square_width + self.game_state.maze_offset,
                 row * square_width + CONTENT_START_Y,
-                (col + 1) * square_width + CONTENT_START_X,
+                (col + 1) * square_width + self.game_state.maze_offset,
                 row * square_width + CONTENT_START_Y,
                 WALLS_COLOR
             )
         if square.bottom:
             DrawTools.draw_line(
                 self.screen,
-                col * square_width + CONTENT_START_X,
+                col * square_width + self.game_state.maze_offset,
                 (row + 1) * square_width + CONTENT_START_Y,
-                (col + 1) * square_width + CONTENT_START_X,
+                (col + 1) * square_width + self.game_state.maze_offset,
                 (row + 1) * square_width + CONTENT_START_Y,
                 WALLS_COLOR
             )
         if square.left:
             DrawTools.draw_line(
                 self.screen,
-                col * square_width + CONTENT_START_X,
+                col * square_width + self.game_state.maze_offset,
                 row * square_width + CONTENT_START_Y,
-                col * square_width + CONTENT_START_X,
+                col * square_width + self.game_state.maze_offset,
                 (row + 1) * square_width + CONTENT_START_Y,
                 WALLS_COLOR
             )
         if square.right:
             DrawTools.draw_line(
                 self.screen,
-                (col + 1) * square_width + CONTENT_START_X,
+                (col + 1) * square_width + self.game_state.maze_offset,
                 row * square_width + CONTENT_START_Y,
-                (col + 1) * square_width + CONTENT_START_X,
+                (col + 1) * square_width + self.game_state.maze_offset,
                 (row + 1) * square_width + CONTENT_START_Y,
                 WALLS_COLOR
             )
@@ -92,7 +90,8 @@ class DisplayMaze(BaseModel):
         if self.game_state is None or self.game_state.maze is None:
             raise Exception("Init GameState before using it.")
 
-        square_width = MAZE_PIXELS_WIDTH // self.game_state.maze.width
+        square_width = (self.game_state.maze_width
+                        // self.game_state.maze.width)
         for row in range(len(self.game_state.maze.grid)):
             for col in range(len(self.game_state.maze.grid[row])):
                 square = self.game_state.maze.grid[row][col]
@@ -106,11 +105,12 @@ class DisplayMaze(BaseModel):
         if self.game_state is None or self.game_state.maze is None:
             raise Exception("Init GameState before using it.")
 
-        square_width = MAZE_PIXELS_WIDTH // self.game_state.maze.width
+        square_width = (self.game_state.maze_width
+                        // self.game_state.maze.width)
         for position in self.game_state.pacgums:
             x, y = position
             DrawTools.draw_circle(
-                x + CONTENT_START_X,
+                x + self.game_state.maze_offset,
                 y + CONTENT_START_Y,
                 square_width // 10,
                 (255, 255, 255),
@@ -126,11 +126,12 @@ class DisplayMaze(BaseModel):
         if self.game_state is None or self.game_state.maze is None:
             raise Exception("Init GameState before using it.")
 
-        square_width = MAZE_PIXELS_WIDTH // self.game_state.maze.width
+        square_width = (self.game_state.maze_width
+                        // self.game_state.maze.width)
         for position in self.game_state.super_pacgums:
             x, y = position
             DrawTools.draw_circle(
-                x + CONTENT_START_X,
+                x + self.game_state.maze_offset,
                 y + CONTENT_START_Y,
                 square_width // 5,
                 (255, 255, 255),

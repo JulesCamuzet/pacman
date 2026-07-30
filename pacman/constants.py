@@ -24,6 +24,6 @@ FRAME_SLOWER = 20
 WELCOME_TEXT = "Press space to continue."
 
 # Game
-MAZE_PIXELS_WIDTH = 800
+MAX_MAZE_SIZE = 800
 WALLS_COLOR = (255, 255, 255)
 SPEED = 7.5  # Squares per second

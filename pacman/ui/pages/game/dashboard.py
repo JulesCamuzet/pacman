@@ -3,8 +3,7 @@ import pygame
 
 from pacman.constants import (
     WINDOW_WIDTH,
-    CONTENT_START_Y,
-    MAZE_PIXELS_WIDTH
+    CONTENT_START_Y
 )
 from pacman.game.state import GameState
 
@@ -15,6 +14,7 @@ class DisplayDashboard(BaseModel):
     """
 
     screen: pygame.Surface
+    game_state: GameState
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __display_info(self, text: str, y: int) -> None:
@@ -34,7 +34,7 @@ class DisplayDashboard(BaseModel):
         Display the game dashboard.
         """
 
-        start_y = CONTENT_START_Y + MAZE_PIXELS_WIDTH + 100
+        start_y = CONTENT_START_Y + self.game_state.maze_height + 100
 
         self.__display_info(
             f"Level: {state.level}",

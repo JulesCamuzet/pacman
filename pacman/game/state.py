@@ -13,9 +13,11 @@ from pacman.game.pacman import Pacman
 from pacman.config import GameConfig
 from pacman.maze import MazeData, PacmanMazeGenerator
 from pacman.constants import (
-    MAZE_PIXELS_WIDTH,
+    MAX_MAZE_SIZE,
     SPEED,
-    FPS
+    FPS,
+    WINDOW_WIDTH,
+    CONTENT_START_X
 )
 
 
@@ -49,6 +51,10 @@ class GameState(BaseModel):
     pacgums: set[tuple[int, int]] = set()
     super_pacgums: set[tuple[int, int]] = set()
     lives: int = 0
+    square_width: int = 0
+    maze_width: int = 0
+    maze_height: int = 0
+    maze_offset: int = 0
 
     def __generate_rail(self) -> None:
         """
@@ -61,23 +67,28 @@ class GameState(BaseModel):
             )
 
         rail: set[tuple[int, int]] = set()
-        square_width = MAZE_PIXELS_WIDTH // self.maze.width
         for row in range(len(self.maze.grid)):
             for col in range(len(self.maze.grid[row])):
                 square = self.maze.grid[row][col]
-                mid_height = row * square_width + square_width // 2
-                mid_width = col * square_width + square_width // 2
+                mid_height = row * self.square_width + self.square_width // 2
+                mid_width = col * self.square_width + self.square_width // 2
                 if not square.top:
-                    for y in range(row * square_width, mid_height + 1):
+                    for y in range(row * self.square_width, mid_height + 1):
                         rail.add((mid_width, y))
                 if not square.right:
-                    for x in range(mid_width, (col + 1) * square_width + 1):
+                    for x in range(
+                        mid_width, (col + 1) * self.square_width + 1
+                    ):
                         rail.add((x, mid_height))
                 if not square.bottom:
-                    for y in range(mid_height, (row + 1) * square_width + 1):
+                    for y in range(
+                        mid_height, (row + 1) * self.square_width + 1
+                    ):
                         rail.add((mid_width, y))
                 if not square.left:
-                    for x in range(col * square_width, mid_width + 1):
+                    for x in range(
+                        col * self.square_width, mid_width + 1
+                    ):
                         rail.add((x, mid_height))
         self.rail = rail
 
@@ -103,21 +114,21 @@ class GameState(BaseModel):
                 if (not self.maze.grid[y][x].is_locked()
                         and (x, y) not in angles):
                     possible_positions.append((x, y))
-        square_width = MAZE_PIXELS_WIDTH // self.maze.width
+
         for _ in range(self.config.pacgum):
             cell_x, cell_y = possible_positions[
                 random.randint(0, len(possible_positions) - 1)
             ]
             pixels_position = (
-                cell_x * square_width + square_width // 2,
-                cell_y * square_width + square_width // 2
+                cell_x * self.square_width + self.square_width // 2,
+                cell_y * self.square_width + self.square_width // 2
             )
             self.pacgums.add(pixels_position)
             possible_positions.remove((cell_x, cell_y))
         for cell_x, cell_y in angles:
             self.super_pacgums.add((
-                cell_x * square_width + square_width // 2,
-                cell_y * square_width + square_width // 2
+                cell_x * self.square_width + self.square_width // 2,
+                cell_y * self.square_width + self.square_width // 2
             ))
         self.pacman.pacgums = self.pacgums
         self.pacman.super_pacgums = self.super_pacgums
@@ -152,9 +163,8 @@ class GameState(BaseModel):
         else:
             raise Exception("Unable to find start position for pacman.")
 
-        square_width = MAZE_PIXELS_WIDTH // self.maze.width
-        pixels_x = x * square_width + square_width // 2
-        pixels_y = y * square_width + square_width // 2
+        pixels_x = x * self.square_width + self.square_width // 2
+        pixels_y = y * self.square_width + self.square_width // 2
         self.pacman.x = pixels_x
         self.pacman.y = pixels_y
         self.pacman.start_x = pixels_x
@@ -170,10 +180,29 @@ class GameState(BaseModel):
                 "Init GameState before using it."
             )
 
-        square_width = MAZE_PIXELS_WIDTH // self.maze.width
-        dist_per_sec = square_width * SPEED
+        dist_per_sec = self.square_width * SPEED
         speed = int(dist_per_sec // FPS)
         self.pacman.speed = speed
+
+    def __compute_maze_size(self) -> None:
+        """
+        Compute the maze pixels width.
+        """
+
+        if self.maze is None:
+            raise Exception(
+                "Maze not found for maze width computation."
+            )
+
+        bigger_side = max(self.maze.width, self.maze.height)
+        self.square_width = MAX_MAZE_SIZE // bigger_side
+        self.maze_width = self.maze.width * self.square_width
+        self.maze_height = self.maze.height * self.square_width
+        if bigger_side == self.maze.width:
+            self.maze_offset = CONTENT_START_X
+        else:
+            self.maze_offset = ((WINDOW_WIDTH - self.maze_width)
+                                // 2)
 
     def init(self) -> None:
         """
@@ -183,6 +212,7 @@ class GameState(BaseModel):
         self.maze = PacmanMazeGenerator.generate_maze(
             self.config.levels[0]
         )
+        self.__compute_maze_size()
         self.__init_pacman_position()
         self.__generate_rail()
         self.__generate_pacgums()
@@ -200,6 +230,7 @@ class GameState(BaseModel):
         self.maze = PacmanMazeGenerator.generate_maze(
             self.config.levels[self.level - 1]
         )
+        self.__compute_maze_size()
         self.__init_pacman_position()
         self.__generate_rail()
         self.__generate_pacgums()
