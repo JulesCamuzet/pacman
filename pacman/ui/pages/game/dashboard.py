@@ -28,7 +28,7 @@ class DisplayDashboard(BaseModel):
             text=text,
             x=WINDOW_WIDTH // 2,
             y=y,
-            font_size=32
+            font_size=24
         )
 
     def display_dashboard(self, state: GameState) -> None:

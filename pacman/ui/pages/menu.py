@@ -45,7 +45,7 @@ class MenuPage(Page):
                 x=WINDOW_WIDTH // 2,
                 y=CONTENT_START_Y + 100 * MENU_ITEMS.index(item),
                 color=color,
-                font_size=48
+                font_size=32
             )
 
     def __handle_keyup(self) -> None:

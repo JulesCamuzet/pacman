@@ -10,8 +10,11 @@ CONTENT_END_X = 900
 CONTENT_START_Y = 300
 CONTENT_END_Y = 1400
 
-# Sprites
+# Assets
 SPRITES_SHEET_PATH = "assets/sprites_sheet.png"
+FONT_PATH = "assets/Emulogic-zrEw.ttf"
+
+# Sprites
 SPRITES_WIDTH = 448
 SPRITES_HEIGHT = 480
 SPRITE_COLUMN_WIDTH = 32

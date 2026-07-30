@@ -41,7 +41,7 @@ class DisplayPause(BaseModel):
                 text=item,
                 x=WINDOW_WIDTH // 2,
                 y=CONTENT_START_Y + 100 * MENU_ITEMS.index(item),
-                font_size=48,
+                font_size=32,
                 color=color
             )
 

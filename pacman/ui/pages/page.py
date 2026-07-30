@@ -47,7 +47,7 @@ class Page(BaseModel):
                 text=self.title,
                 x=WINDOW_WIDTH // 2,
                 y=100,
-                font_size=48
+                font_size=32
             )
 
     def __display_back(self) -> None:
@@ -61,7 +61,7 @@ class Page(BaseModel):
                 text=f"ESC - {self.back_text}",
                 x=CONTENT_START_X,
                 y=CONTENT_END_Y,
-                font_size=24
+                font_size=18
             )
 
     def render(self) -> int:

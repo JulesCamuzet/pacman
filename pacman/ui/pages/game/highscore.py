@@ -44,7 +44,7 @@ class DisplayHighscoreModal(BaseModel):
             text=text,
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2 - 60,
-            font_size=32
+            font_size=24
         )
 
     def __display_prompt(self) -> None:
@@ -58,7 +58,7 @@ class DisplayHighscoreModal(BaseModel):
             text=text,
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2,
-            font_size=24
+            font_size=18
         )
 
     def __display_input(self) -> None:
@@ -72,7 +72,7 @@ class DisplayHighscoreModal(BaseModel):
             text=text,
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2 + 50,
-            font_size=32,
+            font_size=24,
             color=(255, 255, 0)
         )
 

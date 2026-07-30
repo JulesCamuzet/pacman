@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 import pygame
 
+from pacman.constants import FONT_PATH
+
 
 class DrawTools(BaseModel):
     """
@@ -152,7 +154,7 @@ class DrawTools(BaseModel):
             color: RGB color of the text. Defaults to white.
         """
 
-        font = pygame.font.SysFont("Arial", font_size)
+        font = pygame.font.Font(FONT_PATH, font_size)
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect(center=(x, y))
         screen.blit(text_surface, text_rect)

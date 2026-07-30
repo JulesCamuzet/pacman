@@ -39,7 +39,7 @@ class WelcomePage(Page):
             text=WELCOME_TEXT,
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2,
-            font_size=48
+            font_size=32
         )
 
     def __display_pacman(self) -> None:

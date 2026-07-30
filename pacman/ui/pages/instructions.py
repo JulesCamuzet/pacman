@@ -49,7 +49,7 @@ class InstructionsPage(Page):
                 text=line,
                 x=WINDOW_WIDTH // 2,
                 y=CONTENT_START_Y + 40 * index,
-                font_size=24
+                font_size=14
             )
             index += 1
 

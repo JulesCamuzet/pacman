@@ -27,7 +27,7 @@ class DisplayNextLvlModal(BaseModel):
             text=text,
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2,
-            font_size=32
+            font_size=24
         )
 
     def display_modal(self) -> None:
