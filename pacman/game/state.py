@@ -125,6 +125,8 @@ class GameState(BaseModel):
             )
             self.pacgums.add(pixels_position)
             possible_positions.remove((cell_x, cell_y))
+            if len(possible_positions) == 0:
+                break
         for cell_x, cell_y in angles:
             self.super_pacgums.add((
                 cell_x * self.square_width + self.square_width // 2,
