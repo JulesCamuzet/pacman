@@ -11,6 +11,7 @@ from pacman.constants import (
 from pacman.ui.sprites import SpritesChunker
 from pacman.ui.sprites.map.pacman import BIG_PACMAN_WALK
 from pacman.tick import SimpleClock
+from pacman.tools.draw import DrawTools
 
 
 class WelcomePage(Page):
@@ -33,12 +34,13 @@ class WelcomePage(Page):
             - screen (pygame.Surface): The screen
         """
 
-        font = pygame.font.SysFont("Arial", 48)
-        text_surface = font.render(WELCOME_TEXT, True, (255, 255, 255))
-        text_rect = text_surface.get_rect(
-            center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+        DrawTools.display_text(
+            screen=self.screen,
+            text=WELCOME_TEXT,
+            x=WINDOW_WIDTH // 2,
+            y=WINDOW_HEIGHT // 2,
+            font_size=48
         )
-        self.screen.blit(text_surface, text_rect)
 
     def __display_pacman(self) -> None:
         if self.pacman_animation is None:

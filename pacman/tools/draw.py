@@ -130,3 +130,29 @@ class DrawTools(BaseModel):
                 resized.set_at((new_x, new_y), color)
 
         return resized
+
+    @staticmethod
+    def display_text(
+        screen: pygame.Surface,
+        text: str,
+        x: int,
+        y: int,
+        font_size: int,
+        color: tuple[int, int, int] = (255, 255, 255)
+    ) -> None:
+        """
+        Render a single line of text and blit it onto the screen,
+        centered on the given coordinates.
+
+        Args:
+            screen: The surface to draw the text on.
+            text: The text content to render.
+            x: X coordinate of the text's center, in pixels.
+            y: Y coordinate of the text's center, in pixels.
+            color: RGB color of the text. Defaults to white.
+        """
+
+        font = pygame.font.SysFont("Arial", font_size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect(center=(x, y))
+        screen.blit(text_surface, text_rect)

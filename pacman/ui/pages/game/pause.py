@@ -7,6 +7,7 @@ from pacman.constants import (
     CONTENT_START_Y,
     FPS
 )
+from pacman.tools.draw import DrawTools
 
 
 MENU_ITEMS = [
@@ -30,20 +31,19 @@ class DisplayPause(BaseModel):
         """
 
         for item in MENU_ITEMS:
-            font = pygame.font.SysFont("Arial", 48)
             color = (
                 (255, 255, 255)
                 if self.selected_menu_item_index == MENU_ITEMS.index(item)
                 else (169, 169, 169)
             )
-            text_surface = font.render(item, True, color)
-            text_rect = text_surface.get_rect(
-                center=(
-                    WINDOW_WIDTH // 2,
-                    CONTENT_START_Y + 100 * MENU_ITEMS.index(item)
-                )
+            DrawTools.display_text(
+                screen=self.screen,
+                text=item,
+                x=WINDOW_WIDTH // 2,
+                y=CONTENT_START_Y + 100 * MENU_ITEMS.index(item),
+                font_size=48,
+                color=color
             )
-            self.screen.blit(text_surface, text_rect)
 
     def __handle_keyup(self) -> None:
         """

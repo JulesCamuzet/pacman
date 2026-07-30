@@ -7,46 +7,49 @@ from pacman.constants import (
     CONTENT_START_Y
 )
 from pacman.tick import SimpleClock
-from pacman.types import ScoreType
 from pacman.config import GameConfig
-from pacman.scores import HighscoresManager
 from pacman.tools.draw import DrawTools
 
 
-COUNT_PER_PAGES = 20
-
-
-class ScoresPage(Page):
+class InstructionsPage(Page):
     """
-    Display the scores page.
+    Display the instructions page.
     """
 
-    id: PagesEnum = PagesEnum.SCORES
-    title: str = "Scores"
-    scores: list[ScoreType] = []
+    id: PagesEnum = PagesEnum.INSTRUCTIONS
+    title: str = "Instructions"
     back_text: str = "Back"
     config: GameConfig
 
-    def __display_scores(self) -> None:
+    def __display_instructions(self) -> None:
         """
-        Display the scores.
+        Display the game controls and rules.
         """
 
-        if self.scores is None:
-            raise Exception(
-                "Scores data not found."
-            )
+        lines = [
+            "Controls:",
+            "Arrow keys - Move Pacman",
+            "Escape - Pause",
+            "",
+            "Rules:",
+            f"Eat all pacgums to complete a level (+"
+            f"{self.config.points_per_pacgum} pts each)",
+            f"Super-pacgums make ghosts edible for a short time (+"
+            f"{self.config.points_per_super_pacgum} pts each)",
+            f"Eat edible ghosts for bonus points (+"
+            f"{self.config.points_per_ghost} pts each)",
+            "Avoid ghosts when they are not edible, or lose a life",
+            "Complete every level to win the game",
+        ]
 
         index = 0
-        for score in self.scores:
-            rank = index + 1
-            text = f"{rank} - {score["name"]}: {score["score"]}"
+        for line in lines:
             DrawTools.display_text(
                 screen=self.screen,
-                text=text,
+                text=line,
                 x=WINDOW_WIDTH // 2,
-                y=CONTENT_START_Y + 50 * index,
-                font_size=36
+                y=CONTENT_START_Y + 40 * index,
+                font_size=24
             )
             index += 1
 
@@ -54,17 +57,11 @@ class ScoresPage(Page):
         self
     ) -> int:
         """
-        Render the scores page.
+        Render the instructions page.
         """
 
         clock = SimpleClock()
         running = True
-        highscores_manager = HighscoresManager(config=self.config)
-        self.scores = highscores_manager.get_highscores()
-        if self.scores is None:
-            raise Exception(
-                "Scores data not found."
-            )
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -75,7 +72,7 @@ class ScoresPage(Page):
 
             self.screen.fill((0, 0, 0))
             super().render()
-            self.__display_scores()
+            self.__display_instructions()
             clock.tick(FPS)
             pygame.display.flip()
 

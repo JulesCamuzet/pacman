@@ -7,7 +7,8 @@ from pacman.ui.pages import (
     WelcomePage,
     MenuPage,
     ScoresPage,
-    GamePage
+    GamePage,
+    InstructionsPage
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.tick import SimpleClock
@@ -126,6 +127,11 @@ class Ui(BaseModel):
                             screen=self.screen,
                             config=self.config,
                             sprites_chunker=self.sprites_chunker
+                        )
+                    case PagesEnum.INSTRUCTIONS.value:
+                        self.current_page = InstructionsPage(
+                            screen=self.screen,
+                            config=self.config
                         )
                     case _:
                         running = False

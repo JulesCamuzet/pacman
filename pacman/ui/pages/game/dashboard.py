@@ -6,6 +6,7 @@ from pacman.constants import (
     CONTENT_START_Y
 )
 from pacman.game.state import GameState
+from pacman.tools.draw import DrawTools
 
 
 class DisplayDashboard(BaseModel):
@@ -22,12 +23,13 @@ class DisplayDashboard(BaseModel):
         Display an information.
         """
 
-        font = pygame.font.SysFont("Arial", 32)
-        text_surface = font.render(text, True, (255, 255, 255))
-        text_rect = text_surface.get_rect(
-            center=(WINDOW_WIDTH // 2, y)
+        DrawTools.display_text(
+            screen=self.screen,
+            text=text,
+            x=WINDOW_WIDTH // 2,
+            y=y,
+            font_size=32
         )
-        self.screen.blit(text_surface, text_rect)
 
     def display_dashboard(self, state: GameState) -> None:
         """

@@ -7,11 +7,12 @@ from pacman.constants import (
     WINDOW_WIDTH,
     CONTENT_START_Y
 )
+from pacman.tools.draw import DrawTools
 
 
 MENU_ITEMS = [
     "Play",
-    "Settings",
+    "Instructions",
     "Scores",
     "Quit"
 ]
@@ -33,20 +34,19 @@ class MenuPage(Page):
         """
 
         for item in MENU_ITEMS:
-            font = pygame.font.SysFont("Arial", 48)
             color = (
                 (255, 255, 255)
                 if self.selected_menu_item_index == MENU_ITEMS.index(item)
                 else (169, 169, 169)
             )
-            text_surface = font.render(item, True, color)
-            text_rect = text_surface.get_rect(
-                center=(
-                    WINDOW_WIDTH // 2,
-                    CONTENT_START_Y + 100 * MENU_ITEMS.index(item)
-                )
+            DrawTools.display_text(
+                screen=self.screen,
+                text=item,
+                x=WINDOW_WIDTH // 2,
+                y=CONTENT_START_Y + 100 * MENU_ITEMS.index(item),
+                color=color,
+                font_size=48
             )
-            self.screen.blit(text_surface, text_rect)
 
     def __handle_keyup(self) -> None:
         """
@@ -73,7 +73,7 @@ class MenuPage(Page):
             case 0:
                 return PagesEnum.GAME.value
             case 1:
-                return PagesEnum.SETTINGS.value
+                return PagesEnum.INSTRUCTIONS.value
             case 2:
                 return PagesEnum.SCORES.value
             case 3:

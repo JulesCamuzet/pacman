@@ -9,6 +9,7 @@ from pacman.constants import (
 )
 from pacman.scores import HighscoresManager
 from pacman.tick import SimpleClock
+from pacman.tools.draw import DrawTools
 
 
 class DisplayHighscoreModal(BaseModel):
@@ -37,42 +38,43 @@ class DisplayHighscoreModal(BaseModel):
         Display the score recap text on the modal.
         """
 
-        font = pygame.font.SysFont("Arial", 32)
-        color = (255, 255, 255)
         text = f"Game Over. Your score: {self.game_state.score}"
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect(
-            center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 60)
+        DrawTools.display_text(
+            screen=self.screen,
+            text=text,
+            x=WINDOW_WIDTH // 2,
+            y=WINDOW_HEIGHT // 2 - 60,
+            font_size=32
         )
-        self.screen.blit(text_surface, text_rect)
 
     def __display_prompt(self) -> None:
         """
         Display the prompt asking the player to enter their name.
         """
 
-        font = pygame.font.SysFont("Arial", 24)
-        color = (255, 255, 255)
         text = "Enter your name and press ENTER:"
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect(
-            center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+        DrawTools.display_text(
+            screen=self.screen,
+            text=text,
+            x=WINDOW_WIDTH // 2,
+            y=WINDOW_HEIGHT // 2,
+            font_size=24
         )
-        self.screen.blit(text_surface, text_rect)
 
     def __display_input(self) -> None:
         """
         Display the current player name input.
         """
 
-        font = pygame.font.SysFont("Arial", 32)
-        color = (255, 255, 0)
         text = self.player_name if self.player_name else "_"
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect(
-            center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 50)
+        DrawTools.display_text(
+            screen=self.screen,
+            text=text,
+            x=WINDOW_WIDTH // 2,
+            y=WINDOW_HEIGHT // 2 + 50,
+            font_size=32,
+            color=(255, 255, 0)
         )
-        self.screen.blit(text_surface, text_rect)
 
     def __save_score(self) -> None:
         """

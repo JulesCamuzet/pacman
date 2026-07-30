@@ -3,6 +3,7 @@ from pacman.ui.pages.welcome import WelcomePage
 from pacman.ui.pages.menu import MenuPage
 from pacman.ui.pages.scores import ScoresPage
 from pacman.ui.pages.game import GamePage
+from pacman.ui.pages.instructions import InstructionsPage
 
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "PagesEnum",
     "MenuPage",
     "ScoresPage",
-    "GamePage"
+    "GamePage",
+    "InstructionsPage"
 ]

@@ -7,6 +7,7 @@ from pacman.constants import (
     CONTENT_END_Y,
     CONTENT_START_X
 )
+from pacman.tools.draw import DrawTools
 
 
 class PagesEnum(Enum):
@@ -21,6 +22,7 @@ class PagesEnum(Enum):
     GAME = 4
     ENTER_HIGHSCORE = 5
     SCORES = 6
+    INSTRUCTIONS = 7
 
 
 class Page(BaseModel):
@@ -40,10 +42,13 @@ class Page(BaseModel):
         """
 
         if self.title is not None:
-            font = pygame.font.SysFont("Arial", 48)
-            text_surface = font.render(self.title, True, (255, 255, 255))
-            text_rect = text_surface.get_rect(center=(WINDOW_WIDTH // 2, 100))
-            self.screen.blit(text_surface, text_rect)
+            DrawTools.display_text(
+                screen=self.screen,
+                text=self.title,
+                x=WINDOW_WIDTH // 2,
+                y=100,
+                font_size=48
+            )
 
     def __display_back(self) -> None:
         """
@@ -51,13 +56,13 @@ class Page(BaseModel):
         """
 
         if self.back_text is not None:
-            font = pygame.font.SysFont("Arial", 24)
-            text = f"ESC - {self.back_text}"
-            text_surface = font.render(text, True, (255, 255, 255))
-            text_rect = text_surface.get_rect(
-                center=(CONTENT_START_X, CONTENT_END_Y)
+            DrawTools.display_text(
+                screen=self.screen,
+                text=f"ESC - {self.back_text}",
+                x=CONTENT_START_X,
+                y=CONTENT_END_Y,
+                font_size=24
             )
-            self.screen.blit(text_surface, text_rect)
 
     def render(self) -> int:
         """
