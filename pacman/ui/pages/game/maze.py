@@ -7,7 +7,8 @@ from pacman.tools.draw import DrawTools
 from pacman.constants import (
     CONTENT_START_X,
     CONTENT_START_Y,
-    MAZE_PIXELS_WIDTH
+    MAZE_PIXELS_WIDTH,
+    WALLS_COLOR
 )
 
 
@@ -53,7 +54,7 @@ class DisplayMaze(BaseModel):
                 row * square_width + CONTENT_START_Y,
                 (col + 1) * square_width + CONTENT_START_X,
                 row * square_width + CONTENT_START_Y,
-                (103, 42, 49)
+                WALLS_COLOR
             )
         if square.bottom:
             DrawTools.draw_line(
@@ -62,7 +63,7 @@ class DisplayMaze(BaseModel):
                 (row + 1) * square_width + CONTENT_START_Y,
                 (col + 1) * square_width + CONTENT_START_X,
                 (row + 1) * square_width + CONTENT_START_Y,
-                (103, 42, 49)
+                WALLS_COLOR
             )
         if square.left:
             DrawTools.draw_line(
@@ -71,7 +72,7 @@ class DisplayMaze(BaseModel):
                 row * square_width + CONTENT_START_Y,
                 col * square_width + CONTENT_START_X,
                 (row + 1) * square_width + CONTENT_START_Y,
-                (103, 42, 49)
+                WALLS_COLOR
             )
         if square.right:
             DrawTools.draw_line(
@@ -80,7 +81,7 @@ class DisplayMaze(BaseModel):
                 row * square_width + CONTENT_START_Y,
                 (col + 1) * square_width + CONTENT_START_X,
                 (row + 1) * square_width + CONTENT_START_Y,
-                (103, 42, 49)
+                WALLS_COLOR
             )
 
     def __display_walls(self) -> None:
@@ -97,10 +98,51 @@ class DisplayMaze(BaseModel):
                 square = self.game_state.maze.grid[row][col]
                 self.__draw_square_walls(square, square_width, row, col)
 
+    def __display_pacgums(self) -> None:
+        """
+        Display the pacgums.
+        """
+
+        if self.game_state is None or self.game_state.maze is None:
+            raise Exception("Init GameState before using it.")
+
+        square_width = MAZE_PIXELS_WIDTH // self.game_state.maze.width
+        for position in self.game_state.pacgums:
+            x, y = position
+            DrawTools.draw_circle(
+                x + CONTENT_START_X,
+                y + CONTENT_START_Y,
+                square_width // 10,
+                (255, 255, 255),
+                self.screen,
+                True
+            )
+
+    def __display_super_pacgums(self) -> None:
+        """
+        Display the super pacgums.
+        """
+
+        if self.game_state is None or self.game_state.maze is None:
+            raise Exception("Init GameState before using it.")
+
+        square_width = MAZE_PIXELS_WIDTH // self.game_state.maze.width
+        for position in self.game_state.super_pacgums:
+            x, y = position
+            DrawTools.draw_circle(
+                x + CONTENT_START_X,
+                y + CONTENT_START_Y,
+                square_width // 5,
+                (255, 255, 255),
+                self.screen,
+                True
+            )
+
     def display_maze(self) -> None:
         """
         Display the maze.
         """
 
-        # self.__display_rails()
         self.__display_walls()
+        self.__display_pacgums()
+        self.__display_super_pacgums()

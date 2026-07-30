@@ -10,6 +10,7 @@ from pacman.game.pacman import Direction
 from pacman.ui.pages.game.maze import DisplayMaze
 from pacman.ui.pages.game.pacman import DisplayPacman
 from pacman.ui.pages.game.pause import DisplayPause
+from pacman.ui.pages.game.dashboard import DisplayDashboard
 
 
 class GamePage(Page):
@@ -73,7 +74,9 @@ class GamePage(Page):
         )
         pacman_displayer.init()
         pause_displayer = DisplayPause(screen=self.screen)
-
+        dashboard_displayer = DisplayDashboard(
+            screen=self.screen
+        )
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -91,6 +94,7 @@ class GamePage(Page):
             self.game_state.update()
             maze_displayer.display_maze()
             pacman_displayer.display_pacman()
+            dashboard_displayer.display_dashboard(self.game_state)
             clock.tick(FPS)
             pygame.display.flip()
 

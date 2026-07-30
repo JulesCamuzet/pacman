@@ -1,5 +1,11 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from pydantic import BaseModel
 from enum import Enum
+
+if TYPE_CHECKING:
+    from pacman.game.state import GameState
 
 
 class Direction(Enum):
@@ -30,16 +36,44 @@ class Pacman(BaseModel):
     y: int
     start_x: int
     start_y: int
+    pacgums: set[tuple[int, int]] = set()
+    super_pacgums: set[tuple[int, int]] = set()
     direction: Direction = Direction.RIGHT
     next_direction: Direction = Direction.RIGHT
     is_dying: bool = False
     was_dying: bool = False
     speed: int = 3
 
-    def update(self, rail: set[tuple[int, int]]) -> None:
+    def __check_packgums(
+        self,
+        x: int,
+        y: int,
+        state: GameState
+    ) -> None:
+        """
+        Check if a pacgum is eaten.
+
+        Args:
+            - x (int): x to check
+            - y (int): y to check
+        """
+
+        if (x, y) in self.pacgums:
+            self.pacgums.remove((x, y))
+            print("yo")
+            state.score += state.config.points_per_pacgum
+
+        if (x, y) in self.super_pacgums:
+            self.super_pacgums.remove((x, y))
+            state.score += state.config.points_per_super_pacgum
+
+    def update(self, state: GameState) -> None:
         """
         Update the pacman position.
         """
+
+        if state.rail is None:
+            raise Exception("Init GameState before using it.")
 
         if self.is_dying:
             if not self.was_dying:
@@ -60,23 +94,34 @@ class Pacman(BaseModel):
                 target_x, target_y = (self.x + curr_dx * curr_len,
                                       self.y + curr_dy * curr_len)
 
-                if (target_x + wanted_dx, target_y + wanted_dy) in rail:
+                if ((target_x + wanted_dx, target_y + wanted_dy)
+                        in state.rail):
                     self.direction = self.next_direction
                     self.x = target_x
                     self.y = target_y
+                    self.__check_packgums(
+                        self.x,
+                        self.y,
+                        state
+                    )
                     return
 
                 curr_len -= 1
 
         dx, dy = DELTAS[self.direction]
         curr_len = self.speed
+        has_moved = False
         while curr_len >= 0:
             target_x, target_y = (self.x + dx * curr_len,
                                   self.y + dy * curr_len)
 
-            if (target_x, target_y) in rail:
+            if not has_moved and (target_x, target_y) in state.rail:
                 self.x = target_x
                 self.y = target_y
-                return
+                has_moved = True
+
+            self.__check_packgums(target_x, target_y, state)
 
             curr_len -= 1
+
+        self.__check_packgums(self.x, self.y, state)

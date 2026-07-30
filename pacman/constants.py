@@ -30,3 +30,4 @@ SCORES_PATH = "data/scores.json"
 
 # Game
 MAZE_PIXELS_WIDTH = 800
+WALLS_COLOR = (255, 255, 255)

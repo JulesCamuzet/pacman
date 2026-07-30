@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+import random
 
 from pacman.game.ghosts import (
     Ghost,
@@ -11,9 +12,7 @@ from pacman.game.ghosts import (
 from pacman.game.pacman import Pacman
 from pacman.config import GameConfig
 from pacman.maze import MazeData, PacmanMazeGenerator
-from pacman.constants import (
-    MAZE_PIXELS_WIDTH
-)
+from pacman.constants import MAZE_PIXELS_WIDTH
 
 
 class UpdateResult(Enum):
@@ -43,6 +42,9 @@ class GameState(BaseModel):
         OrangeGhost()
     ]
     rail: set[tuple[int, int]] | None = None
+    pacgums: set[tuple[int, int]] = set()
+    super_pacgums: set[tuple[int, int]] = set()
+    lives: int = 0
 
     def __generate_rail(self) -> None:
         """
@@ -74,6 +76,47 @@ class GameState(BaseModel):
                     for x in range(col * square_width, mid_width + 1):
                         rail.add((x, mid_height))
         self.rail = rail
+
+    def __generate_pacgums(self) -> None:
+        """
+        Generate randoms pacgum positions.
+        """
+
+        if self.maze is None:
+            raise Exception(
+                "Maze not found. Did you init GameState ?"
+            )
+
+        possible_positions: list[tuple[int, int]] = []
+        angles = [
+            (0, 0),
+            (0, self.maze.height - 1),
+            (self.maze.width - 1, 0),
+            (self.maze.width - 1, self.maze.height - 1)
+        ]
+        for y in range(self.maze.height):
+            for x in range(self.maze.width):
+                if (not self.maze.grid[y][x].is_locked()
+                        and (x, y) not in angles):
+                    possible_positions.append((x, y))
+        square_width = MAZE_PIXELS_WIDTH // self.maze.width
+        for _ in range(self.config.pacgum):
+            cell_x, cell_y = possible_positions[
+                random.randint(0, len(possible_positions) - 1)
+            ]
+            pixels_position = (
+                cell_x * square_width + square_width // 2,
+                cell_y * square_width + square_width // 2
+            )
+            self.pacgums.add(pixels_position)
+            possible_positions.remove((cell_x, cell_y))
+        for cell_x, cell_y in angles:
+            self.super_pacgums.add((
+                cell_x * square_width + square_width // 2,
+                cell_y * square_width + square_width // 2
+            ))
+        self.pacman.pacgums = self.pacgums
+        self.pacman.super_pacgums = self.super_pacgums
 
     def __init_pacman_position(self) -> None:
         """
@@ -123,6 +166,8 @@ class GameState(BaseModel):
         )
         self.__init_pacman_position()
         self.__generate_rail()
+        self.__generate_pacgums()
+        self.lives = self.config.lives
 
     def update(self) -> UpdateResult:
         """
@@ -134,6 +179,6 @@ class GameState(BaseModel):
                 "Init GameState before using it."
             )
 
-        self.pacman.update(self.rail)
+        self.pacman.update(self)
 
         return UpdateResult.CONTINUE
