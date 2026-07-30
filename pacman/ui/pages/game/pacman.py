@@ -15,6 +15,7 @@ from pacman.constants import (
     FRAME_SLOWER
 )
 from pacman.game.pacman import Direction
+from pacman.tools.draw import DrawTools
 
 
 class DisplayPacman(BaseModel):
@@ -41,24 +42,46 @@ class DisplayPacman(BaseModel):
         Init the pacman displayer.
         """
 
+        pacman_size = int(round(self.game_state.square_width * 0.8, 0))
+
         self.sprites["walk_up"] = list(map(
-            lambda coord: self.sprites_chunker.get_chunk(coord),
+            lambda coord: DrawTools.resize_surface(
+                self.sprites_chunker.get_chunk(coord),
+                pacman_size,
+                pacman_size
+            ),
             PACMAN_WALK_UP
         ))
         self.sprites["walk_right"] = list(map(
-            lambda coord: self.sprites_chunker.get_chunk(coord),
+            lambda coord: DrawTools.resize_surface(
+                self.sprites_chunker.get_chunk(coord),
+                pacman_size,
+                pacman_size
+            ),
             PACMAN_WALK_RIGHT
         ))
         self.sprites["walk_down"] = list(map(
-            lambda coord: self.sprites_chunker.get_chunk(coord),
+            lambda coord: DrawTools.resize_surface(
+                self.sprites_chunker.get_chunk(coord),
+                pacman_size,
+                pacman_size
+            ),
             PACMAN_WALK_DOWN
         ))
         self.sprites["walk_left"] = list(map(
-            lambda coord: self.sprites_chunker.get_chunk(coord),
+            lambda coord: DrawTools.resize_surface(
+                self.sprites_chunker.get_chunk(coord),
+                pacman_size,
+                pacman_size
+            ),
             PACMAN_WALK_LEFT
         ))
         self.sprites["die"] = list(map(
-            lambda coord: self.sprites_chunker.get_chunk(coord),
+            lambda coord: DrawTools.resize_surface(
+                self.sprites_chunker.get_chunk(coord),
+                pacman_size,
+                pacman_size
+            ),
             PACMAN_DIE
         ))
 

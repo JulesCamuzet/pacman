@@ -94,3 +94,39 @@ class DrawTools(BaseModel):
                         <= distance_squared
                             <= radius_squared + radius):
                         screen.set_at((center_x + dx, center_y + dy), color)
+
+    @staticmethod
+    def resize_surface(
+        surface: pygame.Surface,
+        new_width: int,
+        new_height: int
+    ) -> pygame.Surface:
+        """
+        Resize a surface manually, pixel by pixel, using nearest-neighbor
+        sampling. This avoids pygame.transform.scale (and similar), which
+        has no equivalent in MLX (only pixel-level primitives like
+        pixel_put/pixel_get are available there).
+
+        Args:
+            surface: The source surface to resize.
+            new_width: Target width, in pixels.
+            new_height: Target height, in pixels.
+
+        Returns:
+            A new Surface of size (new_width, new_height).
+        """
+
+        old_width, old_height = surface.get_size()
+        resized = pygame.Surface((new_width, new_height), pygame.SRCALPHA)
+
+        x_ratio = old_width / new_width
+        y_ratio = old_height / new_height
+
+        for new_y in range(new_height):
+            src_y = int(new_y * y_ratio)
+            for new_x in range(new_width):
+                src_x = int(new_x * x_ratio)
+                color = surface.get_at((src_x, src_y))
+                resized.set_at((new_x, new_y), color)
+
+        return resized
