@@ -46,41 +46,29 @@ class DisplayMaze(BaseModel):
         """
 
         if square.top:
-            DrawTools.draw_line(
-                self.screen,
-                col * square_width + self.game_state.maze_offset,
-                row * square_width + CONTENT_START_Y,
-                (col + 1) * square_width + self.game_state.maze_offset,
-                row * square_width + CONTENT_START_Y,
-                WALLS_COLOR
-            )
+            y = row * square_width + CONTENT_START_Y
+            x0 = col * square_width + self.game_state.maze_offset
+            x1 = (col + 1) * square_width + self.game_state.maze_offset
+            DrawTools.draw_line(self.screen, x0, y, x1, y, WALLS_COLOR)
+            DrawTools.draw_line(self.screen, x0, y + 1, x1, y + 1, WALLS_COLOR)
         if square.bottom:
-            DrawTools.draw_line(
-                self.screen,
-                col * square_width + self.game_state.maze_offset,
-                (row + 1) * square_width + CONTENT_START_Y,
-                (col + 1) * square_width + self.game_state.maze_offset,
-                (row + 1) * square_width + CONTENT_START_Y,
-                WALLS_COLOR
-            )
+            y = (row + 1) * square_width + CONTENT_START_Y
+            x0 = col * square_width + self.game_state.maze_offset
+            x1 = (col + 1) * square_width + self.game_state.maze_offset
+            DrawTools.draw_line(self.screen, x0, y, x1, y, WALLS_COLOR)
+            DrawTools.draw_line(self.screen, x0, y + 1, x1, y + 1, WALLS_COLOR)
         if square.left:
-            DrawTools.draw_line(
-                self.screen,
-                col * square_width + self.game_state.maze_offset,
-                row * square_width + CONTENT_START_Y,
-                col * square_width + self.game_state.maze_offset,
-                (row + 1) * square_width + CONTENT_START_Y,
-                WALLS_COLOR
-            )
+            x = col * square_width + self.game_state.maze_offset
+            y0 = row * square_width + CONTENT_START_Y
+            y1 = (row + 1) * square_width + CONTENT_START_Y
+            DrawTools.draw_line(self.screen, x, y0, x, y1, WALLS_COLOR)
+            DrawTools.draw_line(self.screen, x + 1, y0, x + 1, y1, WALLS_COLOR)
         if square.right:
-            DrawTools.draw_line(
-                self.screen,
-                (col + 1) * square_width + self.game_state.maze_offset,
-                row * square_width + CONTENT_START_Y,
-                (col + 1) * square_width + self.game_state.maze_offset,
-                (row + 1) * square_width + CONTENT_START_Y,
-                WALLS_COLOR
-            )
+            x = (col + 1) * square_width + self.game_state.maze_offset
+            y0 = row * square_width + CONTENT_START_Y
+            y1 = (row + 1) * square_width + CONTENT_START_Y
+            DrawTools.draw_line(self.screen, x, y0, x, y1, WALLS_COLOR)
+            DrawTools.draw_line(self.screen, x + 1, y0, x + 1, y1, WALLS_COLOR)
 
     def __display_walls(self) -> None:
         """
