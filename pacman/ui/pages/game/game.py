@@ -3,6 +3,7 @@ import pygame
 from pacman.ui.pages import Page, PagesEnum
 from pacman.ui.sprites import SpritesChunker
 from pacman.tick import SimpleClock
+from pacman.sound import SoundManager
 from pacman.constants import FPS
 from pacman.config import GameConfig
 from pacman.game import GameState
@@ -27,6 +28,7 @@ class GamePage(Page):
     back_text: str = "Pause"
     pause: bool = False
     game_state: GameState | None = None
+    sound_manager: SoundManager = SoundManager()
 
     def __handle_keypress(self, event: pygame.event.Event) -> None:
         """
@@ -63,7 +65,10 @@ class GamePage(Page):
         clock = SimpleClock()
         running = True
 
-        self.game_state = GameState(config=self.config)
+        self.game_state = GameState(
+            config=self.config,
+            sound_manager=self.sound_manager
+        )
         self.game_state.init()
         maze_displayer = DisplayMaze(
             screen=self.screen,

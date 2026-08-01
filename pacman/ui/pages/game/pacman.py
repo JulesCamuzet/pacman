@@ -35,6 +35,7 @@ class DisplayPacman(BaseModel):
     }
     current_frame: int = 0
     current_animation: str = "walk_right"
+    ghost_eater_frame: pygame.Surface | None = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def init(self) -> None:
@@ -84,6 +85,11 @@ class DisplayPacman(BaseModel):
             ),
             PACMAN_DIE
         ))
+        self.ghost_eater_frame = DrawTools.resize_surface(
+            pygame.image.load("assets/prankex-marex.png"),
+            pacman_size,
+            pacman_size
+        )
 
     def display_pacman(self) -> None:
         """
@@ -95,6 +101,12 @@ class DisplayPacman(BaseModel):
                 raise Exception(
                     "Init the pacman displayer before using it."
                 )
+
+        if self.ghost_eater_frame is None:
+            raise Exception(
+                "ghost_eater_frame not found. "
+                "Did you init DisplayPacman before using it ?"
+            )
 
         if (
             self.game_state.pacman.is_dying
@@ -128,9 +140,12 @@ class DisplayPacman(BaseModel):
             elif self.game_state.pacman.direction == Direction.UP:
                 self.current_animation = "walk_up"
 
-        frame = self.sprites[
-            self.current_animation
-        ][self.current_frame // FRAME_SLOWER]
+        if self.game_state.last_super_pacgum is not None:
+            frame = self.ghost_eater_frame
+        else:
+            frame = self.sprites[
+                self.current_animation
+            ][self.current_frame // FRAME_SLOWER]
         self.screen.blit(
             frame,
             (

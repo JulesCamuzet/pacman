@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from pydantic import BaseModel
 from enum import Enum
+import time
 
+from pacman.sound import SoundsEnum
 if TYPE_CHECKING:
     from pacman.game.state import GameState
 
@@ -61,10 +63,15 @@ class Pacman(BaseModel):
         if (x, y) in self.pacgums:
             self.pacgums.remove((x, y))
             state.score += state.config.points_per_pacgum
+            state.sound_manager.play_sound(sound=SoundsEnum.EAT_PACGUM)
+            return
 
         if (x, y) in self.super_pacgums:
             self.super_pacgums.remove((x, y))
             state.score += state.config.points_per_super_pacgum
+            state.sound_manager.play_sound(sound=SoundsEnum.GHOST_EATER)
+            state.last_super_pacgum = time.perf_counter()
+            return
 
     def update(self, state: GameState) -> None:
         """
@@ -98,11 +105,7 @@ class Pacman(BaseModel):
                     self.direction = self.next_direction
                     self.x = target_x
                     self.y = target_y
-                    self.__check_packgums(
-                        self.x,
-                        self.y,
-                        state
-                    )
+                    self.__check_packgums(self.x, self.y, state)
                     return
 
                 curr_len -= 1

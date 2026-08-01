@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from enum import Enum
 import random
+import time
 
 from pacman.game.ghosts import (
     Ghost,
@@ -12,6 +13,7 @@ from pacman.game.ghosts import (
 from pacman.game.pacman import Pacman
 from pacman.config import GameConfig
 from pacman.maze import MazeData, PacmanMazeGenerator
+from pacman.sound import SoundManager, SoundsEnum
 from pacman.constants import (
     MAX_MAZE_SIZE,
     SPEED,
@@ -37,6 +39,7 @@ class GameState(BaseModel):
     """
 
     config: GameConfig
+    sound_manager: SoundManager
     maze: MazeData | None = None
     level: int = 1
     score: int = 0
@@ -55,6 +58,7 @@ class GameState(BaseModel):
     maze_width: int = 0
     maze_height: int = 0
     maze_offset: int = 0
+    last_super_pacgum: float | None = None
 
     def __generate_rail(self) -> None:
         """
@@ -239,6 +243,16 @@ class GameState(BaseModel):
         self.__init_pacman_speed()
         return 0
 
+    def __check_sound(self) -> None:
+        """
+        Check if sounds should be stopped.
+        """
+
+        if (self.last_super_pacgum is not None
+                and time.perf_counter() - self.last_super_pacgum >= 10):
+            self.last_super_pacgum = None
+            self.sound_manager.stop_sound(SoundsEnum.GHOST_EATER)
+
     def update(self) -> UpdateResult:
         """
         Update the game state.
@@ -250,5 +264,6 @@ class GameState(BaseModel):
             )
 
         self.pacman.update(self)
+        self.__check_sound()
 
         return UpdateResult.CONTINUE
