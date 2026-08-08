@@ -1,6 +1,7 @@
 # Subject and Codex working documents
 /en.subject*.pdf
 /docs/superpowers/
+/.worktrees/
 
 # Operating system files
 .DS_Store
