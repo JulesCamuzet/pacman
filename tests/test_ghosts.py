@@ -1,12 +1,13 @@
 from pacman.game.ghosts import (
     BlueGhost,
     Ghost,
+    GhostKind,
     OrangeGhost,
     PinkGhost,
     RedGhost,
     GhostMode,
 )
-from pacman.config import GameConfig
+from pacman.config import GameConfig, LevelConfig
 from pacman.game.pacman import Direction
 from pacman.game.state import GameState
 from pacman.maze import MazeData, MazeSquare
@@ -167,3 +168,92 @@ def test_eaten_ghost_respawns_at_home_after_five_seconds() -> None:
     ghost.update(state, now=15.0)
     assert_ghost_mode(ghost, GhostMode.CHASE)
     assert (ghost.x, ghost.y) == (5, 5)
+
+
+def test_game_state_init_places_four_ghosts_in_the_corners() -> None:
+    """Game initialization must place one ghost in each maze corner."""
+
+    config = GameConfig(levels=[LevelConfig(width=5, height=5, seed=42)])
+    state = GameState(config=config)
+
+    state.init()
+
+    assert state.maze is not None
+    half_square = state.square_width // 2
+    right = (state.maze.width - 1) * state.square_width + half_square
+    bottom = (state.maze.height - 1) * state.square_width + half_square
+    positions = {ghost.kind: (ghost.x, ghost.y) for ghost in state.ghosts}
+    assert positions == {
+        GhostKind.RED: (half_square, half_square),
+        GhostKind.PINK: (right, half_square),
+        GhostKind.BLUE: (half_square, bottom),
+        GhostKind.ORANGE: (right, bottom),
+    }
+    assert all(ghost.speed > 0 for ghost in state.ghosts)
+    assert all(ghost.mode == GhostMode.CHASE for ghost in state.ghosts)
+
+
+def test_next_level_reinitializes_ghost_home_positions() -> None:
+    """Changing maze dimensions must also update every ghost home."""
+
+    config = GameConfig(levels=[
+        LevelConfig(width=5, height=5, seed=42),
+        LevelConfig(width=7, height=5, seed=7),
+    ])
+    state = GameState(config=config)
+    state.init()
+    first_orange_home = next(
+        (ghost.start_x, ghost.start_y)
+        for ghost in state.ghosts
+        if ghost.kind == GhostKind.ORANGE
+    )
+
+    assert state.next_level() == 0
+
+    second_orange_home = next(
+        (ghost.start_x, ghost.start_y)
+        for ghost in state.ghosts
+        if ghost.kind == GhostKind.ORANGE
+    )
+    assert second_orange_home != first_orange_home
+    assert all(
+        (ghost.x, ghost.y) == (ghost.start_x, ghost.start_y)
+        for ghost in state.ghosts
+    )
+
+
+def test_frighten_ghosts_refreshes_active_ghosts_only() -> None:
+    """A new power pellet must refresh active ghosts, not eaten ones."""
+
+    state = make_open_state()
+    active = RedGhost(x=5, y=5, speed=0)
+    eaten = PinkGhost(x=25, y=5, speed=0)
+    eaten.be_eaten(now=9.0)
+    state.ghosts = [active, eaten]
+
+    state.frighten_ghosts(now=10.0)
+    state.frighten_ghosts(now=12.0)
+
+    active.update(state, now=19.9)
+    assert_ghost_mode(active, GhostMode.FRIGHTENED)
+    active.update(state, now=20.0)
+    assert_ghost_mode(active, GhostMode.CHASE)
+    assert_ghost_mode(eaten, GhostMode.EATEN)
+
+
+def test_super_pacgum_makes_ghosts_frightened() -> None:
+    """Collecting a super-pacgum must activate frightened mode."""
+
+    state = make_open_state()
+    state.pacman.x = 5
+    state.pacman.y = 5
+    state.pacman.speed = 0
+    state.pacman.super_pacgums = {(5, 5)}
+    state.super_pacgums = state.pacman.super_pacgums
+    state.ghosts = [RedGhost(x=25, y=25, speed=0)]
+
+    state.pacman.update(state)
+
+    assert state.super_pacgums == set()
+    assert state.score == state.config.points_per_super_pacgum
+    assert_ghost_mode(state.ghosts[0], GhostMode.FRIGHTENED)
