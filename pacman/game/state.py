@@ -281,7 +281,41 @@ class GameState(BaseModel):
         self.__init_ghosts()
         return 0
 
-    def update(self) -> UpdateResult:
+    def __ghost_collides_with_pacman(self, ghost: Ghost) -> bool:
+        """Return whether a ghost is close enough to touch Pacman."""
+
+        collision_distance = max(1, self.square_width // 3)
+        return (
+            abs(ghost.x - self.pacman.x) <= collision_distance
+            and abs(ghost.y - self.pacman.y) <= collision_distance
+        )
+
+    def __resolve_ghost_collisions(self, now: float) -> UpdateResult:
+        """Apply the consequence of at most one ghost collision."""
+
+        if self.lives <= 0:
+            return UpdateResult.LOSE
+        if self.pacman.is_dying:
+            return UpdateResult.CONTINUE
+
+        for ghost in self.ghosts:
+            if (ghost.mode == GhostMode.EATEN
+                    or not self.__ghost_collides_with_pacman(ghost)):
+                continue
+            if ghost.mode == GhostMode.FRIGHTENED:
+                self.score += self.config.points_per_ghost
+                ghost.be_eaten(now)
+                return UpdateResult.CONTINUE
+
+            self.lives -= 1
+            self.pacman.is_dying = True
+            if self.lives <= 0:
+                return UpdateResult.LOSE
+            return UpdateResult.CONTINUE
+
+        return UpdateResult.CONTINUE
+
+    def update(self, now: float | None = None) -> UpdateResult:
         """
         Update the game state.
         """
@@ -291,6 +325,9 @@ class GameState(BaseModel):
                 "Init GameState before using it."
             )
 
+        current_time = time.perf_counter() if now is None else now
         self.pacman.update(self)
+        for ghost in self.ghosts:
+            ghost.update(self, current_time)
 
-        return UpdateResult.CONTINUE
+        return self.__resolve_ghost_collisions(current_time)

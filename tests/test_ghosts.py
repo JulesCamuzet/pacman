@@ -9,7 +9,7 @@ from pacman.game.ghosts import (
 )
 from pacman.config import GameConfig, LevelConfig
 from pacman.game.pacman import Direction
-from pacman.game.state import GameState
+from pacman.game.state import GameState, UpdateResult
 from pacman.maze import MazeData, MazeSquare
 
 
@@ -257,3 +257,74 @@ def test_super_pacgum_makes_ghosts_frightened() -> None:
     assert state.super_pacgums == set()
     assert state.score == state.config.points_per_super_pacgum
     assert_ghost_mode(state.ghosts[0], GhostMode.FRIGHTENED)
+
+
+def test_normal_collision_removes_one_life_only() -> None:
+    """One continuous contact must not remove several lives."""
+
+    state = make_open_state()
+    state.lives = 3
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.speed = 0
+    state.ghosts = [RedGhost(x=15, y=15, speed=0)]
+
+    assert state.update(now=10.0) == UpdateResult.CONTINUE
+    assert state.lives == 2
+    assert state.pacman.is_dying is True
+
+    assert state.update(now=10.1) == UpdateResult.CONTINUE
+    assert state.lives == 2
+
+
+def test_frightened_collision_scores_and_eats_the_ghost() -> None:
+    """Eating a frightened ghost must add configured points exactly once."""
+
+    state = make_open_state()
+    state.lives = 3
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.speed = 0
+    ghost = RedGhost(x=15, y=15, speed=0)
+    ghost.become_frightened(now=10.0)
+    state.ghosts = [ghost]
+
+    assert state.update(now=11.0) == UpdateResult.CONTINUE
+
+    assert state.score == state.config.points_per_ghost
+    assert state.lives == 3
+    assert_ghost_mode(ghost, GhostMode.EATEN)
+
+    state.update(now=11.1)
+    assert state.score == state.config.points_per_ghost
+
+
+def test_eaten_ghost_collision_has_no_effect() -> None:
+    """A waiting eaten ghost must not damage Pacman or score again."""
+
+    state = make_open_state()
+    state.lives = 3
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.speed = 0
+    ghost = RedGhost(x=15, y=15, speed=0)
+    ghost.be_eaten(now=10.0)
+    state.ghosts = [ghost]
+
+    assert state.update(now=11.0) == UpdateResult.CONTINUE
+    assert state.lives == 3
+    assert state.score == 0
+
+
+def test_collision_with_last_life_returns_lose() -> None:
+    """A dangerous collision on the final life must end the game."""
+
+    state = make_open_state()
+    state.lives = 1
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.speed = 0
+    state.ghosts = [RedGhost(x=15, y=15, speed=0)]
+
+    assert state.update(now=10.0) == UpdateResult.LOSE
+    assert state.lives == 0
