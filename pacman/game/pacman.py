@@ -65,6 +65,7 @@ class Pacman(BaseModel):
         if (x, y) in self.super_pacgums:
             self.super_pacgums.remove((x, y))
             state.score += state.config.points_per_super_pacgum
+            state.frighten_ghosts()
 
     def update(self, state: GameState) -> None:
         """

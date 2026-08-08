@@ -1,13 +1,16 @@
 from pydantic import BaseModel
 from enum import Enum
 import random
+import time
 
 from pacman.game.ghosts import (
     Ghost,
     RedGhost,
     PinkGhost,
     OrangeGhost,
-    BlueGhost
+    BlueGhost,
+    GhostCorner,
+    GhostMode,
 )
 from pacman.game.pacman import Pacman
 from pacman.config import GameConfig
@@ -186,6 +189,43 @@ class GameState(BaseModel):
         speed = int(dist_per_sec // FPS)
         self.pacman.speed = speed
 
+    def __init_ghosts(self) -> None:
+        """Place one ghost at the center of each maze corner."""
+
+        if self.maze is None or self.square_width <= 0:
+            raise Exception("Init maze size before initializing ghosts.")
+
+        half_square = self.square_width // 2
+        left = half_square
+        top = half_square
+        right = ((self.maze.width - 1) * self.square_width
+                 + half_square)
+        bottom = ((self.maze.height - 1) * self.square_width
+                  + half_square)
+        positions = {
+            GhostCorner.TOP_LEFT: (left, top),
+            GhostCorner.TOP_RIGHT: (right, top),
+            GhostCorner.BOTTOM_LEFT: (left, bottom),
+            GhostCorner.BOTTOM_RIGHT: (right, bottom),
+        }
+        ghost_speed = max(1, int(self.square_width * SPEED // FPS))
+
+        for ghost in self.ghosts:
+            ghost.x, ghost.y = positions[ghost.corner]
+            ghost.start_x = ghost.x
+            ghost.start_y = ghost.y
+            ghost.speed = ghost_speed
+            ghost.mode = GhostMode.CHASE
+            ghost.frightened_until = 0.0
+            ghost.respawn_at = 0.0
+
+    def frighten_ghosts(self, now: float | None = None) -> None:
+        """Make every active ghost edible and refresh the duration."""
+
+        current_time = time.perf_counter() if now is None else now
+        for ghost in self.ghosts:
+            ghost.become_frightened(current_time)
+
     def __compute_maze_size(self) -> None:
         """
         Compute the maze pixels width.
@@ -219,6 +259,7 @@ class GameState(BaseModel):
         self.__generate_rail()
         self.__generate_pacgums()
         self.__init_pacman_speed()
+        self.__init_ghosts()
         self.lives = self.config.lives
 
     def next_level(self) -> int:
@@ -237,6 +278,7 @@ class GameState(BaseModel):
         self.__generate_rail()
         self.__generate_pacgums()
         self.__init_pacman_speed()
+        self.__init_ghosts()
         return 0
 
     def update(self) -> UpdateResult:
