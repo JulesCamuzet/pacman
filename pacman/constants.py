@@ -101,3 +101,5 @@ WELCOME_TEXT = "Press space to continue."
 MAX_MAZE_SIZE = int(800 * _SCALE_X)
 WALLS_COLOR = (255, 255, 255)
 SPEED = 7.5  # Squares per second
+GHOST_FRIGHTENED_DURATION = 8.0
+GHOST_RESPAWN_DELAY = 5.0

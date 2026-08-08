@@ -1,4 +1,4 @@
-from pacman.game.ghosts.ghost import Ghost
+from pacman.game.ghosts.ghost import Ghost, GhostCorner, GhostKind
 
 
 class BlueGhost(Ghost):
@@ -6,4 +6,5 @@ class BlueGhost(Ghost):
     Describe the blue ghost
     """
 
-    pass
+    kind: GhostKind = GhostKind.BLUE
+    corner: GhostCorner = GhostCorner.BOTTOM_LEFT

@@ -1,4 +1,4 @@
-from pacman.game.ghosts.ghost import Ghost
+from pacman.game.ghosts.ghost import Ghost, GhostCorner, GhostKind
 
 
 class OrangeGhost(Ghost):
@@ -6,4 +6,5 @@ class OrangeGhost(Ghost):
     Describe the orange ghost
     """
 
-    pass
+    kind: GhostKind = GhostKind.ORANGE
+    corner: GhostCorner = GhostCorner.BOTTOM_RIGHT

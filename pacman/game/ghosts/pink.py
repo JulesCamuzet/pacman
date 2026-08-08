@@ -1,4 +1,4 @@
-from pacman.game.ghosts.ghost import Ghost
+from pacman.game.ghosts.ghost import Ghost, GhostCorner, GhostKind
 
 
 class PinkGhost(Ghost):
@@ -6,4 +6,5 @@ class PinkGhost(Ghost):
     Describe the pink ghost
     """
 
-    pass
+    kind: GhostKind = GhostKind.PINK
+    corner: GhostCorner = GhostCorner.TOP_RIGHT
