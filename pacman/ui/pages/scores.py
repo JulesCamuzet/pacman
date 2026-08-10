@@ -4,7 +4,8 @@ from pacman.ui.pages import PagesEnum, Page
 from pacman.constants import (
     FPS,
     WINDOW_WIDTH,
-    CONTENT_START_Y
+    CONTENT_START_Y,
+    FONT_SIZE_TITLE
 )
 from pacman.tick import SimpleClock
 from pacman.types import ScoreType
@@ -46,7 +47,7 @@ class ScoresPage(Page):
                 text=text,
                 x=WINDOW_WIDTH // 2,
                 y=CONTENT_START_Y + 50 * index,
-                font_size=36
+                font_size=FONT_SIZE_TITLE
             )
             index += 1
 

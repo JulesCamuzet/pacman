@@ -6,7 +6,8 @@ from pacman.constants import (
     WELCOME_TEXT,
     WINDOW_HEIGHT,
     FPS,
-    FRAME_SLOWER
+    FRAME_SLOWER,
+    FONT_SIZE_LARGE
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.ui.sprites.map.pacman import BIG_PACMAN_WALK
@@ -39,7 +40,7 @@ class WelcomePage(Page):
             text=WELCOME_TEXT,
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2,
-            font_size=32
+            font_size=FONT_SIZE_LARGE
         )
 
     def __display_pacman(self) -> None:

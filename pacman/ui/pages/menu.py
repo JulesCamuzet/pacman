@@ -5,7 +5,8 @@ from pacman.tick import SimpleClock
 from pacman.constants import (
     FPS,
     WINDOW_WIDTH,
-    CONTENT_START_Y
+    CONTENT_START_Y,
+    FONT_SIZE_LARGE
 )
 from pacman.tools.draw import DrawTools
 
@@ -45,7 +46,7 @@ class MenuPage(Page):
                 x=WINDOW_WIDTH // 2,
                 y=CONTENT_START_Y + 100 * MENU_ITEMS.index(item),
                 color=color,
-                font_size=32
+                font_size=FONT_SIZE_LARGE
             )
 
     def __handle_keyup(self) -> None:

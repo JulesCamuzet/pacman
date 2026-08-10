@@ -3,7 +3,11 @@ import pygame
 import time
 
 from pacman.game.state import GameState
-from pacman.constants import WINDOW_HEIGHT, WINDOW_WIDTH
+from pacman.constants import (
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
+    FONT_SIZE_MEDIUM
+)
 from pacman.tools.draw import DrawTools
 
 
@@ -27,7 +31,7 @@ class DisplayNextLvlModal(BaseModel):
             text=text,
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2,
-            font_size=24
+            font_size=FONT_SIZE_MEDIUM
         )
 
     def display_modal(self) -> None:

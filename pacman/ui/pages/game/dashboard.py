@@ -3,7 +3,8 @@ import pygame
 
 from pacman.constants import (
     WINDOW_WIDTH,
-    CONTENT_START_Y
+    CONTENT_START_Y,
+    FONT_SIZE_MEDIUM
 )
 from pacman.game.state import GameState
 from pacman.tools.draw import DrawTools
@@ -28,7 +29,7 @@ class DisplayDashboard(BaseModel):
             text=text,
             x=WINDOW_WIDTH // 2,
             y=y,
-            font_size=24
+            font_size=FONT_SIZE_MEDIUM
         )
 
     def display_dashboard(self, state: GameState) -> None:

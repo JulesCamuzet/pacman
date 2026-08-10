@@ -68,6 +68,19 @@ CONTENT_END_X = int(900 * _SCALE_X)
 CONTENT_START_Y = int(300 * _SCALE_Y)
 CONTENT_END_Y = int(1400 * _SCALE_Y)
 
+# Fonts
+# Base font sizes designed against the 1000x1500 reference, scaled by
+# the same ratio as the window so text stays proportional to the UI
+# on any screen size. Use these instead of hardcoding font_size
+# values when calling DrawTools.display_text.
+_FONT_SCALE = min(_SCALE_X, _SCALE_Y)
+
+FONT_SIZE_SMALL = max(1, int(14 * _FONT_SCALE))
+FONT_SIZE_TEXT = max(1, int(18 * _FONT_SCALE))
+FONT_SIZE_MEDIUM = max(1, int(24 * _FONT_SCALE))
+FONT_SIZE_LARGE = max(1, int(32 * _FONT_SCALE))
+FONT_SIZE_TITLE = max(1, int(36 * _FONT_SCALE))
+
 # Assets
 SPRITES_SHEET_PATH = "assets/sprites_sheet.png"
 FONT_PATH = "assets/Emulogic-zrEw.ttf"

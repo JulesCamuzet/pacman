@@ -5,7 +5,9 @@ import pygame
 from pacman.constants import (
     WINDOW_WIDTH,
     CONTENT_END_Y,
-    CONTENT_START_X
+    CONTENT_START_X,
+    FONT_SIZE_LARGE,
+    FONT_SIZE_TEXT
 )
 from pacman.tools.draw import DrawTools
 
@@ -47,7 +49,7 @@ class Page(BaseModel):
                 text=self.title,
                 x=WINDOW_WIDTH // 2,
                 y=100,
-                font_size=32
+                font_size=FONT_SIZE_LARGE
             )
 
     def __display_back(self) -> None:
@@ -61,7 +63,7 @@ class Page(BaseModel):
                 text=f"ESC - {self.back_text}",
                 x=CONTENT_START_X,
                 y=CONTENT_END_Y,
-                font_size=18
+                font_size=FONT_SIZE_TEXT
             )
 
     def render(self) -> int:

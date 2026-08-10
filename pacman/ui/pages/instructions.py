@@ -4,7 +4,8 @@ from pacman.ui.pages import PagesEnum, Page
 from pacman.constants import (
     FPS,
     WINDOW_WIDTH,
-    CONTENT_START_Y
+    CONTENT_START_Y,
+    FONT_SIZE_SMALL
 )
 from pacman.tick import SimpleClock
 from pacman.config import GameConfig
@@ -49,7 +50,7 @@ class InstructionsPage(Page):
                 text=line,
                 x=WINDOW_WIDTH // 2,
                 y=CONTENT_START_Y + 40 * index,
-                font_size=14
+                font_size=FONT_SIZE_SMALL
             )
             index += 1
 
