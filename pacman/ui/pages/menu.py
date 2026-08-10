@@ -12,6 +12,7 @@ from pacman.tools.draw import DrawTools
 
 MENU_ITEMS = [
     "Play",
+    "Generate Maze",
     "Instructions",
     "Scores",
     "Quit"
@@ -73,10 +74,12 @@ class MenuPage(Page):
             case 0:
                 return PagesEnum.GAME.value
             case 1:
-                return PagesEnum.INSTRUCTIONS.value
+                return PagesEnum.MAZE_GENERATOR.value
             case 2:
-                return PagesEnum.SCORES.value
+                return PagesEnum.INSTRUCTIONS.value
             case 3:
+                return PagesEnum.SCORES.value
+            case 4:
                 return PagesEnum.QUIT.value
             case _:
                 return PagesEnum.QUIT.value

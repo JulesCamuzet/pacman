@@ -49,6 +49,32 @@ def test_generate_maze_wraps_generator_errors(
         maze_module.PacmanMazeGenerator.generate_maze(LevelConfig())
 
 
+@pytest.mark.parametrize("perfect", [False, True])
+def test_generate_maze_forwards_perfect_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    perfect: bool,
+) -> None:
+    """The adapter must not replace the level's perfect mode."""
+
+    received: dict[str, object] = {}
+
+    class FakeGenerator:
+        def __init__(self, **kwargs: object) -> None:
+            received.update(kwargs)
+            self.shortest_path = "ES"
+            self.maze = [[9, 3], [12, 6]]
+            self.maze_entry = (0, 0)
+            self.maze_exit = (1, 1)
+
+    monkeypatch.setattr(maze_module, "MazeGenerator", FakeGenerator)
+
+    maze_module.PacmanMazeGenerator.generate_maze(
+        LevelConfig(width=2, height=2, seed=42, perfect=perfect)
+    )
+
+    assert received["perfect"] is perfect
+
+
 def test_app_prepares_data_for_the_user_interface(
     tmp_path: Path,
 ) -> None:

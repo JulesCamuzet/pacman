@@ -6,8 +6,10 @@ from pacman.tick import SimpleClock
 from pacman.constants import FPS
 from pacman.config import GameConfig
 from pacman.game import GameState
+from pacman.game.state import UpdateResult
 from pacman.game.pacman import Direction
 from pacman.ui.pages.game.maze import DisplayMaze
+from pacman.ui.pages.game.ghosts import DisplayGhosts
 from pacman.ui.pages.game.pacman import DisplayPacman
 from pacman.ui.pages.game.pause import DisplayPause
 from pacman.ui.pages.game.dashboard import DisplayDashboard
@@ -69,6 +71,12 @@ class GamePage(Page):
             screen=self.screen,
             game_state=self.game_state
         )
+        ghosts_displayer = DisplayGhosts(
+            screen=self.screen,
+            game_state=self.game_state,
+            sprites_chunker=self.sprites_chunker
+        )
+        ghosts_displayer.init()
         pacman_displayer = DisplayPacman(
             screen=self.screen,
             game_state=self.game_state,
@@ -103,8 +111,12 @@ class GamePage(Page):
                     self.pause = False
                 else:
                     return PagesEnum.MENU.value
-            self.game_state.update()
+            update_result = self.game_state.update()
+            if update_result == UpdateResult.LOSE:
+                highscore_modal_renderer.display_modal()
+                return PagesEnum.MENU.value
             maze_displayer.display_maze()
+            ghosts_displayer.display_ghosts()
             pacman_displayer.display_pacman()
             dashboard_displayer.display_dashboard(self.game_state)
             if (len(self.game_state.super_pacgums) == 0

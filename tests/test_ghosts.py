@@ -277,6 +277,21 @@ def test_normal_collision_removes_one_life_only() -> None:
     assert state.lives == 2
 
 
+def test_visible_ghost_overlap_removes_one_life() -> None:
+    """Visibly overlapping sprites must count as a collision."""
+
+    state = make_open_state()
+    state.lives = 3
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.speed = 0
+    state.ghosts = [RedGhost(x=22, y=15, speed=0)]
+
+    assert state.update(now=10.0) == UpdateResult.CONTINUE
+    assert state.lives == 2
+    assert state.pacman.is_dying is True
+
+
 def test_frightened_collision_scores_and_eats_the_ghost() -> None:
     """Eating a frightened ghost must add configured points exactly once."""
 

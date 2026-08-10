@@ -8,7 +8,8 @@ from pacman.ui.pages import (
     MenuPage,
     ScoresPage,
     GamePage,
-    InstructionsPage
+    InstructionsPage,
+    MazeGeneratorPage
 )
 from pacman.ui.sprites import SpritesChunker
 from pacman.tick import SimpleClock
@@ -123,13 +124,25 @@ class Ui(BaseModel):
                             config=self.config
                         )
                     case PagesEnum.GAME.value:
+                        game_config = self.config
+                        if isinstance(self.current_page, MazeGeneratorPage):
+                            if self.current_page.generated_config is None:
+                                raise Exception(
+                                    "Generated game configuration not found."
+                                )
+                            game_config = self.current_page.generated_config
                         self.current_page = GamePage(
                             screen=self.screen,
-                            config=self.config,
+                            config=game_config,
                             sprites_chunker=self.sprites_chunker
                         )
                     case PagesEnum.INSTRUCTIONS.value:
                         self.current_page = InstructionsPage(
+                            screen=self.screen,
+                            config=self.config
+                        )
+                    case PagesEnum.MAZE_GENERATOR.value:
+                        self.current_page = MazeGeneratorPage(
                             screen=self.screen,
                             config=self.config
                         )
