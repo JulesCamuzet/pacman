@@ -1,7 +1,30 @@
 import json
 from pathlib import Path
 
-from pacman.config import ConfigGenerator
+from pacman.config import ConfigGenerator, LevelConfig
+
+
+def test_level_config_defaults_to_non_perfect() -> None:
+    """Existing level data must preserve the current maze behavior."""
+
+    assert LevelConfig().perfect is False
+
+
+def test_load_config_accepts_perfect_level_setting(
+    tmp_path: Path,
+) -> None:
+    """The JSON configuration must be able to request a perfect maze."""
+
+    config_path = tmp_path / "perfect.json"
+    config_path.write_text(
+        '{"levels": [{"width": 14, "height": 18, '
+        '"seed": 42, "perfect": true}]}',
+        encoding="utf-8",
+    )
+
+    config = ConfigGenerator.load_config(config_path)
+
+    assert config.levels[0].perfect is True
 
 
 def test_load_config_accepts_comments_and_unknown_keys(

@@ -20,7 +20,6 @@ from pacman.constants import (
     SPEED,
     FPS,
     WINDOW_WIDTH,
-    CONTENT_START_X
 )
 
 
@@ -240,11 +239,7 @@ class GameState(BaseModel):
         self.square_width = MAX_MAZE_SIZE // bigger_side
         self.maze_width = self.maze.width * self.square_width
         self.maze_height = self.maze.height * self.square_width
-        if bigger_side == self.maze.width:
-            self.maze_offset = CONTENT_START_X
-        else:
-            self.maze_offset = ((WINDOW_WIDTH - self.maze_width)
-                                // 2)
+        self.maze_offset = (WINDOW_WIDTH - self.maze_width) // 2
 
     def init(self) -> None:
         """
@@ -284,7 +279,7 @@ class GameState(BaseModel):
     def __ghost_collides_with_pacman(self, ghost: Ghost) -> bool:
         """Return whether a ghost is close enough to touch Pacman."""
 
-        collision_distance = max(1, self.square_width // 3)
+        collision_distance = max(1, round(self.square_width * 0.8))
         return (
             abs(ghost.x - self.pacman.x) <= collision_distance
             and abs(ghost.y - self.pacman.y) <= collision_distance

@@ -25,6 +25,7 @@ class PagesEnum(Enum):
     ENTER_HIGHSCORE = 5
     SCORES = 6
     INSTRUCTIONS = 7
+    MAZE_GENERATOR = 8
 
 
 class Page(BaseModel):

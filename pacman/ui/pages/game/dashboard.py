@@ -37,7 +37,7 @@ class DisplayDashboard(BaseModel):
         Display the game dashboard.
         """
 
-        start_y = CONTENT_START_Y + self.game_state.maze_height + 100
+        start_y = CONTENT_START_Y + self.game_state.maze_height + 40
 
         self.__display_info(
             f"Level: {state.level}",
