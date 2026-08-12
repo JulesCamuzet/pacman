@@ -6,7 +6,7 @@ J = En cours Jules
 [A] Feat: Time limitation per level
 [A] Feat: Victory screen (split victory and defeat)
 [A] Fix: perfect maze should always be false, remove option
-[J] Fix: cut effects and sounds when switching level.
+[*] Fix: cut effects and sounds when switching level.
 [ ] Fix: make ghosts go in spawn when we die.
 [ ] Fix: descrease ghosts speed
 [ ] Fix: Highscores, only alphanum and restrict empty names
