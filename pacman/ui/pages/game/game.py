@@ -1,4 +1,5 @@
 import pygame
+import time
 
 from pacman.ui.pages import Page, PagesEnum
 from pacman.ui.sprites import SpritesChunker
@@ -106,7 +107,11 @@ class GamePage(Page):
             self.screen.fill((0, 0, 0))
             super().render()
             if self.pause:
+                pause_started_at = time.perf_counter()
                 res = pause_displayer.render()
+                self.game_state.pause_timer(
+                    time.perf_counter() - pause_started_at
+                )
                 if res == 0:
                     self.pause = False
                 else:

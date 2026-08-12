@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+import math
 import random
 import time
 
@@ -64,6 +65,8 @@ class GameState(BaseModel):
     ghost_mode_index: int = 0
     ghost_mode_elapsed: float = 0.0
     ghost_clock_time: float | None = None
+    level_deadline: float | None = None
+    remaining_time: int = 0
 
     def __generate_rail(self) -> None:
         """
@@ -234,6 +237,38 @@ class GameState(BaseModel):
         self.ghost_mode_elapsed = 0.0
         self.ghost_clock_time = now
 
+    def __reset_level_timer(self, now: float) -> None:
+        """Start a fresh countdown for the current level."""
+
+        self.remaining_time = self.config.level_max_time
+        self.level_deadline = now + self.config.level_max_time
+
+    def __update_level_timer(self, now: float) -> bool:
+        """Update the displayed countdown and report a timeout."""
+
+        if self.level_deadline is None:
+            self.__reset_level_timer(now)
+        if self.level_deadline is None:
+            return False
+        seconds = max(0.0, self.level_deadline - now)
+        self.remaining_time = math.ceil(seconds)
+        return seconds <= 0.0
+
+    def pause_timer(self, duration: float) -> None:
+        """Move gameplay deadlines forward by one pause duration."""
+
+        if duration <= 0:
+            return
+        if self.level_deadline is not None:
+            self.level_deadline += duration
+        if self.ghost_clock_time is not None:
+            self.ghost_clock_time += duration
+        for ghost in self.ghosts:
+            if ghost.mode == GhostMode.FRIGHTENED:
+                ghost.frightened_until += duration
+            elif ghost.mode == GhostMode.EATEN:
+                ghost.respawn_at += duration
+
     def update_ghost_mode(self, now: float) -> None:
         """Advance the shared scatter/chase schedule."""
 
@@ -321,6 +356,7 @@ class GameState(BaseModel):
         self.__generate_pacgums()
         self.__init_pacman_speed()
         self.__reset_ghost_cycle(current_time)
+        self.__reset_level_timer(current_time)
         self.__init_ghosts()
         self.lives = self.config.lives
 
@@ -353,6 +389,7 @@ class GameState(BaseModel):
         self.__generate_pacgums()
         self.__init_pacman_speed()
         self.__reset_ghost_cycle(current_time)
+        self.__reset_level_timer(current_time)
         self.__init_ghosts()
         return 0
 
@@ -405,6 +442,8 @@ class GameState(BaseModel):
             )
 
         current_time = time.perf_counter() if now is None else now
+        if self.__update_level_timer(current_time):
+            return UpdateResult.LOSE
         self.pacman.update(self)
         self.update_ghost_mode(current_time)
         for ghost in self.ghosts:

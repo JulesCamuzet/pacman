@@ -51,3 +51,7 @@ class DisplayDashboard(BaseModel):
             f"Lives: {state.lives}",
             start_y + 100
         )
+        self.__display_info(
+            f"Time: {state.remaining_time}s",
+            start_y + 150
+        )
