@@ -1,7 +1,7 @@
-[*] Feat: Cheat mode Jules Fini
-[ ] Feat: Time limitation per level Alexis en cours
-[ ] Feat: Victory screen (split victory and defeat) Alexis en cours
-[ ] Fix: perfect maze should always be false, remove option Alexis en cours
+[*] Feat: Cheat mode Jules
+[A] Feat: Time limitation per level
+[A] Feat: Victory screen (split victory and defeat)
+[A] Fix: perfect maze should always be false, remove option
 [ ] Fix: cut effects and sounds when switching level.
 [ ] Fix: make ghosts go in spawn when we die.
 [ ] Fix: descrease ghosts speed
