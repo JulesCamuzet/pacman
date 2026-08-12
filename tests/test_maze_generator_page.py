@@ -62,7 +62,7 @@ def test_menu_opens_maze_generator_page(
     assert page.render() == PagesEnum.MAZE_GENERATOR.value
 
 
-def test_generator_toggles_perfect_and_escape_keeps_config(
+def test_generator_escape_keeps_config(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Leaving the page must not create or mutate a game configuration."""
@@ -71,7 +71,6 @@ def test_generator_toggles_perfect_and_escape_keeps_config(
     config = GameConfig()
     page = MazeGeneratorPage(screen=screen, config=config)
     monkeypatch.setattr(pygame.event, "get", lambda: [
-        pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RIGHT),
         pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE),
     ])
     stop_page_clock(monkeypatch)
@@ -79,9 +78,7 @@ def test_generator_toggles_perfect_and_escape_keeps_config(
     result = page.render()
 
     assert result == PagesEnum.MENU.value
-    assert page.perfect is True
     assert page.generated_config is None
-    assert config.levels[0].perfect is False
 
 
 def test_generate_builds_temporary_first_level_and_keeps_following_levels(
@@ -94,13 +91,12 @@ def test_generate_builds_temporary_first_level_and_keeps_following_levels(
         LevelConfig(width=21, height=21, seed=42),
         LevelConfig(width=16, height=12, seed=99),
     ])
-    page = MazeGeneratorPage(screen=screen, config=config, perfect=True)
+    page = MazeGeneratorPage(screen=screen, config=config)
     monkeypatch.setattr(
         "pacman.ui.pages.maze_generator.random.randint",
         lambda start, end: 123456,
     )
     monkeypatch.setattr(pygame.event, "get", lambda: [
-        pygame.event.Event(pygame.KEYDOWN, key=pygame.K_DOWN),
         pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN),
     ])
     stop_page_clock(monkeypatch)
@@ -113,7 +109,6 @@ def test_generate_builds_temporary_first_level_and_keeps_following_levels(
         width=14,
         height=18,
         seed=123456,
-        perfect=True,
     )
     assert page.generated_config.levels[1] == config.levels[1]
     assert page.generated_config is not config
@@ -132,7 +127,6 @@ def test_ui_passes_generated_configuration_to_game(
         width=14,
         height=18,
         seed=123456,
-        perfect=True,
     )
     generator_page = MazeGeneratorPage(
         screen=screen,

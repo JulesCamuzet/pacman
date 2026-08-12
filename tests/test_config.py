@@ -4,16 +4,18 @@ from pathlib import Path
 from pacman.config import ConfigGenerator, LevelConfig
 
 
-def test_level_config_defaults_to_non_perfect() -> None:
-    """Existing level data must preserve the current maze behavior."""
+def test_level_config_does_not_expose_perfect_mode() -> None:
+    """Perfect mazes must not be selectable through level data."""
 
-    assert LevelConfig().perfect is False
+    level = LevelConfig.model_validate({"perfect": True})
+
+    assert not hasattr(level, "perfect")
 
 
-def test_load_config_accepts_perfect_level_setting(
+def test_load_config_ignores_perfect_level_setting(
     tmp_path: Path,
 ) -> None:
-    """The JSON configuration must be able to request a perfect maze."""
+    """A JSON perfect option must be ignored for Pac-Man corridors."""
 
     config_path = tmp_path / "perfect.json"
     config_path.write_text(
@@ -24,7 +26,7 @@ def test_load_config_accepts_perfect_level_setting(
 
     config = ConfigGenerator.load_config(config_path)
 
-    assert config.levels[0].perfect is True
+    assert not hasattr(config.levels[0], "perfect")
 
 
 def test_load_config_accepts_comments_and_unknown_keys(

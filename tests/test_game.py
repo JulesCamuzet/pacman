@@ -49,12 +49,10 @@ def test_generate_maze_wraps_generator_errors(
         maze_module.PacmanMazeGenerator.generate_maze(LevelConfig())
 
 
-@pytest.mark.parametrize("perfect", [False, True])
-def test_generate_maze_forwards_perfect_mode(
+def test_generate_maze_always_disables_perfect_mode(
     monkeypatch: pytest.MonkeyPatch,
-    perfect: bool,
 ) -> None:
-    """The adapter must not replace the level's perfect mode."""
+    """The adapter must always request Pac-Man-compatible corridors."""
 
     received: dict[str, object] = {}
 
@@ -69,10 +67,10 @@ def test_generate_maze_forwards_perfect_mode(
     monkeypatch.setattr(maze_module, "MazeGenerator", FakeGenerator)
 
     maze_module.PacmanMazeGenerator.generate_maze(
-        LevelConfig(width=2, height=2, seed=42, perfect=perfect)
+        LevelConfig(width=2, height=2, seed=42)
     )
 
-    assert received["perfect"] is perfect
+    assert received["perfect"] is False
 
 
 def test_app_prepares_data_for_the_user_interface(

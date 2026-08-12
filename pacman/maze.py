@@ -95,7 +95,7 @@ class PacmanMazeGenerator(BaseModel):
         try:
             generator = MazeGenerator(
                 size=(level.width, level.height),
-                perfect=level.perfect,
+                perfect=False,
                 seed=level.seed,
             )
             shortest_path = generator.shortest_path

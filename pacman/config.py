@@ -19,7 +19,6 @@ class LevelConfig(BaseModel):
     width: int = Field(default=21, gt=1)
     height: int = Field(default=21, gt=1)
     seed: int = Field(default=42, ge=0)
-    perfect: bool = False
 
 
 def _default_levels() -> list[LevelConfig]:
@@ -86,24 +85,10 @@ def _safe_filename(data: dict[str, object]) -> str:
     return value
 
 
-def _safe_bool(
-    data: dict[str, object],
-    key: str,
-    default: bool,
-) -> bool:
-    """Read a strict Boolean or return its safe default."""
-
-    value = data.get(key, default)
-    if type(value) is not bool:
-        _warning(f"'{key}' is invalid; using {default}.")
-        return default
-    return value
-
-
 def _normalize_level(
     raw_level: object,
     index: int,
-) -> dict[str, int | bool]:
+) -> dict[str, int]:
     """Replace invalid level values with safe defaults."""
 
     default_seed = 42 if index == 0 else 0
@@ -113,20 +98,18 @@ def _normalize_level(
             "width": 21,
             "height": 21,
             "seed": default_seed,
-            "perfect": False,
         }
 
     return {
         "width": _safe_int(raw_level, "width", 21, 2),
         "height": _safe_int(raw_level, "height", 21, 2),
         "seed": _safe_int(raw_level, "seed", default_seed, 0),
-        "perfect": _safe_bool(raw_level, "perfect", False),
     }
 
 
 def _normalize_levels(
     data: dict[str, object],
-) -> list[dict[str, int | bool]]:
+) -> list[dict[str, int]]:
     """Read the level list or return ten safe levels."""
 
     raw_levels = data.get("levels")
@@ -137,7 +120,6 @@ def _normalize_levels(
                 "width": 21,
                 "height": 21,
                 "seed": 42 if index == 0 else 0,
-                "perfect": False,
             }
             for index in range(10)
         ]
