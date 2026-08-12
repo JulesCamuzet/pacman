@@ -1,3 +1,5 @@
+import pytest
+
 from pacman.game.ghosts import (
     BlueGhost,
     Ghost,
@@ -65,10 +67,10 @@ def test_colored_ghosts_have_distinct_kinds_and_corners() -> None:
         "orange",
     ]
     assert [ghost.corner.value for ghost in ghosts] == [
-        "top_left",
         "top_right",
-        "bottom_left",
+        "top_left",
         "bottom_right",
+        "bottom_left",
     ]
 
 
@@ -80,9 +82,9 @@ def test_get_neighbors_returns_the_four_open_directions() -> None:
 
     assert ghost.get_neighbors(state, (1, 1)) == [
         ((1, 0), Direction.UP),
-        ((2, 1), Direction.RIGHT),
-        ((1, 2), Direction.DOWN),
         ((0, 1), Direction.LEFT),
+        ((1, 2), Direction.DOWN),
+        ((2, 1), Direction.RIGHT),
     ]
 
 
@@ -109,20 +111,119 @@ def test_chase_direction_uses_the_shortest_bfs_distance() -> None:
     state = make_open_state()
     state.pacman.x = 25
     state.pacman.y = 15
-    ghost = RedGhost(x=15, y=15)
+    ghost = RedGhost(
+        x=15,
+        y=15,
+        direction=Direction.UP,
+        mode=GhostMode.CHASE,
+    )
 
     assert ghost.choose_direction(state) == Direction.RIGHT
 
 
-def test_frightened_direction_uses_the_largest_bfs_distance() -> None:
-    """Frightened mode must select a cell farther away from Pacman."""
+def test_frightened_direction_is_random_but_does_not_reverse(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Frightened ghosts wander without voluntarily turning around."""
 
     state = make_open_state()
     state.pacman.x = 25
     state.pacman.y = 5
-    ghost = RedGhost(x=15, y=15, mode=GhostMode.FRIGHTENED)
+    ghost = RedGhost(
+        x=15,
+        y=15,
+        direction=Direction.RIGHT,
+        mode=GhostMode.FRIGHTENED,
+    )
+    monkeypatch.setattr(
+        "pacman.game.ghosts.ghost.random.choice",
+        lambda choices: choices[0],
+    )
 
-    assert ghost.choose_direction(state) == Direction.DOWN
+    assert ghost.choose_direction(state) == Direction.UP
+
+
+def test_ghost_does_not_reverse_during_normal_chase() -> None:
+    """A ghost may turn or continue, but cannot reverse voluntarily."""
+
+    state = make_open_state()
+    state.pacman.x = 5
+    state.pacman.y = 15
+    ghost = RedGhost(
+        x=15,
+        y=15,
+        direction=Direction.RIGHT,
+        mode=GhostMode.CHASE,
+    )
+
+    assert ghost.choose_direction(state) == Direction.UP
+
+
+def test_each_ghost_has_its_classic_chase_target() -> None:
+    """The four colors must no longer all target Pac-Man directly."""
+
+    state = make_open_state()
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.direction = Direction.RIGHT
+    red = RedGhost(x=15, y=15, mode=GhostMode.CHASE)
+    pink = PinkGhost(mode=GhostMode.CHASE)
+    blue = BlueGhost(mode=GhostMode.CHASE)
+    orange = OrangeGhost(x=105, y=105, mode=GhostMode.CHASE)
+    state.ghosts = [red, pink, blue, orange]
+
+    assert red.get_chase_target(state) == (1, 1)
+    assert pink.get_chase_target(state) == (5, 1)
+    assert blue.get_chase_target(state) == (5, 1)
+    assert orange.get_chase_target(state) == (1, 1)
+
+
+def test_orange_returns_to_its_corner_when_close_to_pacman() -> None:
+    """Orange must become less aggressive inside its eight-cell radius."""
+
+    state = make_open_state()
+    state.pacman.x = 15
+    state.pacman.y = 15
+    orange = OrangeGhost(x=25, y=15, mode=GhostMode.CHASE)
+
+    assert orange.get_chase_target(state) == (0, 2)
+
+
+def test_scatter_mode_targets_each_ghost_corner() -> None:
+    """Scatter mode must split the group across four different corners."""
+
+    state = make_open_state()
+    ghosts = [RedGhost(), PinkGhost(), BlueGhost(), OrangeGhost()]
+
+    assert [ghost.get_target(state) for ghost in ghosts] == [
+        (2, 0),
+        (0, 0),
+        (2, 2),
+        (0, 2),
+    ]
+
+
+def test_ghost_schedule_starts_in_scatter_then_switches_to_chase() -> None:
+    """The first seven seconds must give the player a scatter period."""
+
+    state = make_open_state()
+    ghost = RedGhost(
+        x=15,
+        y=15,
+        speed=0,
+        direction=Direction.RIGHT,
+        mode=GhostMode.SCATTER,
+    )
+    state.ghosts = [ghost]
+    state.ghost_mode = GhostMode.SCATTER
+    state.ghost_clock_time = 0.0
+
+    state.update_ghost_mode(now=6.9)
+    assert_ghost_mode(ghost, GhostMode.SCATTER)
+
+    state.update_ghost_mode(now=7.0)
+    assert_ghost_mode(ghost, GhostMode.CHASE)
+    assert ghost.direction == Direction.LEFT
 
 
 def test_ghost_update_moves_only_on_the_existing_rail() -> None:
@@ -131,7 +232,12 @@ def test_ghost_update_moves_only_on_the_existing_rail() -> None:
     state = make_open_state()
     state.pacman.x = 25
     state.pacman.y = 15
-    ghost = RedGhost(x=5, y=15, speed=2)
+    ghost = RedGhost(
+        x=5,
+        y=15,
+        speed=2,
+        mode=GhostMode.CHASE,
+    )
 
     ghost.update(state, now=1.0)
 
@@ -144,6 +250,7 @@ def test_frightened_mode_expires_after_its_deadline() -> None:
     """A frightened ghost must automatically return to chase mode."""
 
     state = make_open_state()
+    state.ghost_mode = GhostMode.SCATTER
     ghost = RedGhost(x=15, y=15, speed=0)
     ghost.become_frightened(now=10.0)
 
@@ -151,7 +258,7 @@ def test_frightened_mode_expires_after_its_deadline() -> None:
     assert_ghost_mode(ghost, GhostMode.FRIGHTENED)
 
     ghost.update(state, now=18.0)
-    assert_ghost_mode(ghost, GhostMode.CHASE)
+    assert_ghost_mode(ghost, GhostMode.SCATTER)
 
 
 def test_eaten_ghost_respawns_at_home_after_five_seconds() -> None:
@@ -166,7 +273,7 @@ def test_eaten_ghost_respawns_at_home_after_five_seconds() -> None:
     assert (ghost.x, ghost.y) == (15, 15)
 
     ghost.update(state, now=15.0)
-    assert_ghost_mode(ghost, GhostMode.CHASE)
+    assert_ghost_mode(ghost, GhostMode.SCATTER)
     assert (ghost.x, ghost.y) == (5, 5)
 
 
@@ -184,13 +291,17 @@ def test_game_state_init_places_four_ghosts_in_the_corners() -> None:
     bottom = (state.maze.height - 1) * state.square_width + half_square
     positions = {ghost.kind: (ghost.x, ghost.y) for ghost in state.ghosts}
     assert positions == {
-        GhostKind.RED: (half_square, half_square),
-        GhostKind.PINK: (right, half_square),
-        GhostKind.BLUE: (half_square, bottom),
-        GhostKind.ORANGE: (right, bottom),
+        GhostKind.RED: (right, half_square),
+        GhostKind.PINK: (half_square, half_square),
+        GhostKind.BLUE: (right, bottom),
+        GhostKind.ORANGE: (half_square, bottom),
     }
     assert all(ghost.speed > 0 for ghost in state.ghosts)
-    assert all(ghost.mode == GhostMode.CHASE for ghost in state.ghosts)
+    assert all(
+        ghost.speed < state.pacman.speed
+        for ghost in state.ghosts
+    )
+    assert all(ghost.mode == GhostMode.SCATTER for ghost in state.ghosts)
 
 
 def test_next_level_reinitializes_ghost_home_positions() -> None:
@@ -237,7 +348,7 @@ def test_frighten_ghosts_refreshes_active_ghosts_only() -> None:
     active.update(state, now=19.9)
     assert_ghost_mode(active, GhostMode.FRIGHTENED)
     active.update(state, now=20.0)
-    assert_ghost_mode(active, GhostMode.CHASE)
+    assert_ghost_mode(active, GhostMode.SCATTER)
     assert_ghost_mode(eaten, GhostMode.EATEN)
 
 
@@ -267,11 +378,20 @@ def test_normal_collision_removes_one_life_only() -> None:
     state.pacman.x = 15
     state.pacman.y = 15
     state.pacman.speed = 0
-    state.ghosts = [RedGhost(x=15, y=15, speed=0)]
+    state.ghosts = [RedGhost(
+        x=15,
+        y=15,
+        start_x=5,
+        start_y=5,
+        speed=0,
+        mode=GhostMode.CHASE,
+    )]
 
     assert state.update(now=10.0) == UpdateResult.CONTINUE
     assert state.lives == 2
     assert state.pacman.is_dying is True
+    assert (state.ghosts[0].x, state.ghosts[0].y) == (5, 5)
+    assert_ghost_mode(state.ghosts[0], GhostMode.SCATTER)
 
     assert state.update(now=10.1) == UpdateResult.CONTINUE
     assert state.lives == 2

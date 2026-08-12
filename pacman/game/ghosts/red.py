@@ -7,4 +7,4 @@ class RedGhost(Ghost):
     """
 
     kind: GhostKind = GhostKind.RED
-    corner: GhostCorner = GhostCorner.TOP_LEFT
+    corner: GhostCorner = GhostCorner.TOP_RIGHT

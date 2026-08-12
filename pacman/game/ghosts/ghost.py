@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from enum import Enum
 from typing import TYPE_CHECKING
 from collections import deque
+import random
 import time
 
 from pacman.constants import (
@@ -44,6 +45,15 @@ class GhostCorner(str, Enum):
     BOTTOM_RIGHT = "bottom_right"
 
 
+class GhostMode(Enum):
+    """Describe the current ghost behavior."""
+
+    CHASE = 0
+    SCATTER = 1
+    FRIGHTENED = 2
+    EATEN = 3
+
+
 class Ghost(BaseModel):
     """
     Describe the ghost.
@@ -57,7 +67,7 @@ class Ghost(BaseModel):
     start_y: int = 0
     direction: Direction = Direction.RIGHT
     speed: int = 1
-    mode: GhostMode = GhostMode.CHASE
+    mode: GhostMode = GhostMode.SCATTER
     frightened_until: float = 0.0
     respawn_at: float = 0.0
 
@@ -78,9 +88,9 @@ class Ghost(BaseModel):
         square = state.maze.grid[y][x]
         candidates = [
             (not square.top, (x, y - 1), Direction.UP),
-            (not square.right, (x + 1, y), Direction.RIGHT),
-            (not square.bottom, (x, y + 1), Direction.DOWN),
             (not square.left, (x - 1, y), Direction.LEFT),
+            (not square.bottom, (x, y + 1), Direction.DOWN),
+            (not square.right, (x + 1, y), Direction.RIGHT),
         ]
         neighbors: list[tuple[tuple[int, int], Direction]] = []
         for is_open, (next_x, next_y), direction in candidates:
@@ -106,6 +116,93 @@ class Ghost(BaseModel):
                     distances[neighbor] = distances[cell] + 1
                     cells.append(neighbor)
         return distances
+
+    def get_pacman_cell(self, state: GameState) -> tuple[int, int]:
+        """Return Pac-Man's current maze cell."""
+
+        if state.square_width <= 0:
+            raise Exception("Invalid maze square width for ghosts.")
+        return (
+            state.pacman.x // state.square_width,
+            state.pacman.y // state.square_width,
+        )
+
+    def get_target_ahead(
+        self,
+        state: GameState,
+        distance: int,
+    ) -> tuple[int, int]:
+        """Return a cell in front of Pac-Man."""
+
+        pacman_x, pacman_y = self.get_pacman_cell(state)
+        dx, dy = DELTAS[state.pacman.direction]
+        return pacman_x + dx * distance, pacman_y + dy * distance
+
+    def get_scatter_target(self, state: GameState) -> tuple[int, int]:
+        """Return this ghost's fixed maze corner."""
+
+        if state.maze is None:
+            raise Exception("Init GameState before using ghosts.")
+        right = state.maze.width - 1
+        bottom = state.maze.height - 1
+        corners = {
+            GhostCorner.TOP_LEFT: (0, 0),
+            GhostCorner.TOP_RIGHT: (right, 0),
+            GhostCorner.BOTTOM_LEFT: (0, bottom),
+            GhostCorner.BOTTOM_RIGHT: (right, bottom),
+        }
+        return corners[self.corner]
+
+    def get_chase_target(self, state: GameState) -> tuple[int, int]:
+        """Return the default direct chase target used by Red."""
+
+        return self.get_pacman_cell(state)
+
+    def get_target(self, state: GameState) -> tuple[int, int]:
+        """Return the target for the ghost's current normal mode."""
+
+        if self.mode == GhostMode.SCATTER:
+            return self.get_scatter_target(state)
+        return self.get_chase_target(state)
+
+    def __get_reachable_target(
+        self,
+        state: GameState,
+        ghost_cell: tuple[int, int],
+        target: tuple[int, int],
+    ) -> tuple[int, int]:
+        """Move an off-rail target to the closest reachable maze cell."""
+
+        reachable = self.__distance_map(state, ghost_cell)
+        if target in reachable:
+            return target
+        target_x, target_y = target
+        return min(
+            reachable,
+            key=lambda cell: (
+                abs(cell[0] - target_x) + abs(cell[1] - target_y),
+                reachable[cell],
+            ),
+        )
+
+    def __legal_choices(
+        self,
+        state: GameState,
+        ghost_cell: tuple[int, int],
+    ) -> list[tuple[tuple[int, int], Direction]]:
+        """Return exits without a voluntary reverse when alternatives exist."""
+
+        choices = self.get_neighbors(state, ghost_cell)
+        opposite = {
+            Direction.UP: Direction.DOWN,
+            Direction.RIGHT: Direction.LEFT,
+            Direction.DOWN: Direction.UP,
+            Direction.LEFT: Direction.RIGHT,
+        }[self.direction]
+        forward_choices = [
+            choice for choice in choices if choice[1] != opposite
+        ]
+        return forward_choices or choices
 
     def choose_direction(self, state: GameState) -> Direction | None:
         """Choose the next direction with one shared BFS strategy."""
@@ -136,8 +233,6 @@ class Ghost(BaseModel):
         ]
         if not reachable:
             return None
-        if self.mode == GhostMode.FRIGHTENED:
-            return max(reachable, key=lambda choice: choice[0])[1]
         return min(reachable, key=lambda choice: choice[0])[1]
 
     def send_home(self, now: float) -> None:
@@ -178,13 +273,13 @@ class Ghost(BaseModel):
                 return
             self.x = self.start_x
             self.y = self.start_y
-            self.mode = GhostMode.CHASE
+            self.mode = state.ghost_mode
             self.respawn_at = 0.0
             return
 
         if (self.mode == GhostMode.FRIGHTENED
                 and current_time >= self.frightened_until):
-            self.mode = GhostMode.CHASE
+            self.mode = state.ghost_mode
             self.frightened_until = 0.0
 
         if (self.mode == GhostMode.GOING_HOME

@@ -19,6 +19,8 @@ from pacman.constants import (
     MAX_MAZE_SIZE,
     SPEED,
     FPS,
+    GHOST_MODE_DURATIONS,
+    GHOST_SPEED_RATIO,
     WINDOW_WIDTH,
     GHOST_SPEED
 )
@@ -58,6 +60,10 @@ class GameState(BaseModel):
     maze_width: int = 0
     maze_height: int = 0
     maze_offset: int = 0
+    ghost_mode: GhostMode = GhostMode.SCATTER
+    ghost_mode_index: int = 0
+    ghost_mode_elapsed: float = 0.0
+    ghost_clock_time: float | None = None
 
     def __generate_rail(self) -> None:
         """
@@ -215,7 +221,63 @@ class GameState(BaseModel):
             ghost.start_x = ghost.x
             ghost.start_y = ghost.y
             ghost.speed = ghost_speed
-            ghost.mode = GhostMode.CHASE
+            ghost.direction = Direction.RIGHT
+            ghost.mode = self.ghost_mode
+            ghost.frightened_until = 0.0
+            ghost.respawn_at = 0.0
+
+    def __reset_ghost_cycle(self, now: float) -> None:
+        """Restart the arcade scatter/chase schedule."""
+
+        self.ghost_mode = GhostMode.SCATTER
+        self.ghost_mode_index = 0
+        self.ghost_mode_elapsed = 0.0
+        self.ghost_clock_time = now
+
+    def update_ghost_mode(self, now: float) -> None:
+        """Advance the shared scatter/chase schedule."""
+
+        if self.ghost_clock_time is None:
+            self.ghost_clock_time = now
+            return
+
+        elapsed = max(0.0, now - self.ghost_clock_time)
+        self.ghost_clock_time = now
+        if any(
+            ghost.mode == GhostMode.FRIGHTENED
+            for ghost in self.ghosts
+        ):
+            return
+
+        self.ghost_mode_elapsed += elapsed
+        while self.ghost_mode_index < len(GHOST_MODE_DURATIONS):
+            duration = GHOST_MODE_DURATIONS[self.ghost_mode_index]
+            if self.ghost_mode_elapsed < duration:
+                break
+            self.ghost_mode_elapsed -= duration
+            self.ghost_mode_index += 1
+            new_mode = (
+                GhostMode.SCATTER
+                if self.ghost_mode_index % 2 == 0
+                else GhostMode.CHASE
+            )
+            if new_mode == self.ghost_mode:
+                continue
+            self.ghost_mode = new_mode
+            for ghost in self.ghosts:
+                if ghost.mode in (GhostMode.CHASE, GhostMode.SCATTER):
+                    ghost.mode = new_mode
+                    ghost.reverse_direction()
+
+    def reset_after_life_loss(self, now: float) -> None:
+        """Return every ghost home and restart with a scatter period."""
+
+        self.__reset_ghost_cycle(now)
+        for ghost in self.ghosts:
+            ghost.x = ghost.start_x
+            ghost.y = ghost.start_y
+            ghost.direction = Direction.RIGHT
+            ghost.mode = GhostMode.SCATTER
             ghost.frightened_until = 0.0
             ghost.respawn_at = 0.0
 
@@ -224,6 +286,8 @@ class GameState(BaseModel):
 
         current_time = time.perf_counter() if now is None else now
         for ghost in self.ghosts:
+            if ghost.mode in (GhostMode.CHASE, GhostMode.SCATTER):
+                ghost.reverse_direction()
             ghost.become_frightened(current_time)
 
     def __compute_maze_size(self) -> None:
@@ -247,6 +311,7 @@ class GameState(BaseModel):
         Init the game state
         """
 
+        current_time = time.perf_counter()
         self.maze = PacmanMazeGenerator.generate_maze(
             self.config.levels[0]
         )
@@ -255,6 +320,7 @@ class GameState(BaseModel):
         self.__generate_rail()
         self.__generate_pacgums()
         self.__init_pacman_speed()
+        self.__reset_ghost_cycle(current_time)
         self.__init_ghosts()
         self.lives = self.config.lives
 
@@ -276,6 +342,7 @@ class GameState(BaseModel):
         if self.level == len(self.config.levels):
             return 1
         self.level += 1
+        current_time = time.perf_counter()
         self.maze = PacmanMazeGenerator.generate_maze(
             self.config.levels[self.level - 1]
         )
@@ -285,6 +352,7 @@ class GameState(BaseModel):
         self.__generate_rail()
         self.__generate_pacgums()
         self.__init_pacman_speed()
+        self.__reset_ghost_cycle(current_time)
         self.__init_ghosts()
         return 0
 
@@ -321,6 +389,7 @@ class GameState(BaseModel):
                     other_ghost.send_home(now)
             if self.lives <= 0:
                 return UpdateResult.LOSE
+            self.reset_after_life_loss(now)
             return UpdateResult.CONTINUE
 
         return UpdateResult.CONTINUE
@@ -337,6 +406,7 @@ class GameState(BaseModel):
 
         current_time = time.perf_counter() if now is None else now
         self.pacman.update(self)
+        self.update_ghost_mode(current_time)
         for ghost in self.ghosts:
             ghost.update(self, current_time)
 
