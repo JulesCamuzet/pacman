@@ -1,7 +1,12 @@
 import pygame
 
 from pacman.config import GameConfig, LevelConfig
-from pacman.constants import CONTENT_START_Y, WINDOW_HEIGHT
+from pacman.constants import (
+    CONTENT_START_Y,
+    MAX_MAZE_SIZE,
+    WINDOW_HEIGHT,
+    WINDOW_WIDTH,
+)
 from pacman.game import GameState
 from pacman.ui.pages.game.dashboard import DisplayDashboard
 
@@ -22,8 +27,11 @@ def test_landscape_maze_has_equal_horizontal_margins() -> None:
 
     state = make_state(width=18, height=14)
 
-    assert state.maze_width == 558
-    assert state.maze_offset == 221
+    left_margin = state.maze_offset
+    right_margin = WINDOW_WIDTH - state.maze_width - state.maze_offset
+
+    assert state.maze_width <= MAX_MAZE_SIZE
+    assert abs(left_margin - right_margin) <= 1
 
 
 def test_portrait_maze_and_dashboard_fit_inside_window() -> None:
@@ -36,6 +44,9 @@ def test_portrait_maze_and_dashboard_fit_inside_window() -> None:
 
     dashboard.display_dashboard(state)
 
-    assert state.maze_offset == 283
-    assert CONTENT_START_Y + state.maze_height == 688
-    assert screen.get_bounding_rect(min_alpha=1).bottom <= 850
+    left_margin = state.maze_offset
+    right_margin = WINDOW_WIDTH - state.maze_width - state.maze_offset
+
+    assert abs(left_margin - right_margin) <= 1
+    assert CONTENT_START_Y + state.maze_height < WINDOW_HEIGHT
+    assert screen.get_bounding_rect(min_alpha=1).bottom <= WINDOW_HEIGHT

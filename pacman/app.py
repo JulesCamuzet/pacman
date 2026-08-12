@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from pacman.config import GameConfig, ConfigGenerator
-from pacman.maze import MazeData
 from pacman.ui import Ui
 
 
@@ -15,7 +14,6 @@ class AppMain:
 
         self.config_path = Path(config_path)
         self.config: GameConfig | None = None
-        self.maze: MazeData | None = None
 
     def run(self) -> bool:
         """Load all data required by the future user interface."""

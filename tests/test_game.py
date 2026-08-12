@@ -1,7 +1,9 @@
 import json
+import importlib.util
 from pathlib import Path
 import subprocess
 import sys
+from typing import Callable, cast
 
 import pytest
 
@@ -74,6 +76,7 @@ def test_generate_maze_always_disables_perfect_mode(
 
 
 def test_app_prepares_data_for_the_user_interface(
+    monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     config_path = tmp_path / "game.json"
@@ -93,13 +96,31 @@ def test_app_prepares_data_for_the_user_interface(
         encoding="utf-8",
     )
 
+    calls: dict[str, object] = {}
+
+    class FakeUi:
+        def __init__(self, config: object) -> None:
+            calls["config"] = config
+
+        def init(self) -> None:
+            calls["initialized"] = True
+
+        def run(self) -> int:
+            calls["ran"] = True
+            return 0
+
+    monkeypatch.setattr(app_module, "Ui", FakeUi)
     app = app_module.AppMain(config_path)
     result = app.run()
 
     assert result is True
     assert app.config is not None
-    assert app.maze is not None
-    assert app.maze.width == 21
+    assert app.config.levels[0].width == 21
+    assert calls == {
+        "config": app.config,
+        "initialized": True,
+        "ran": True,
+    }
 
 
 def test_app_handles_generator_error(
@@ -110,17 +131,24 @@ def test_app_handles_generator_error(
     config_path = tmp_path / "game.json"
     config_path.write_text("{}", encoding="utf-8")
 
-    def fail_generation(
-        level: LevelConfig,
-    ) -> maze_module.MazeData:
-        raise maze_module.MazeGenerationError("test failure")
+    class BrokenUi:
+        def __init__(self, config: object) -> None:
+            pass
 
-    monkeypatch.setattr(app_module, "generate_maze", fail_generation)
+        def init(self) -> None:
+            raise maze_module.MazeGenerationError("test failure")
+
+        def run(self) -> int:
+            return 0
+
+    monkeypatch.setattr(app_module, "Ui", BrokenUi)
 
     result = app_module.AppMain(config_path).run()
 
     assert result is False
-    assert "test failure" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "test failure" in output
+    assert "Traceback" not in output
 
 
 def test_cli_requires_exactly_one_argument() -> None:
@@ -139,18 +167,26 @@ def test_cli_requires_exactly_one_argument() -> None:
     assert "Traceback" not in result.stderr
 
 
-def test_cli_accepts_a_json_configuration(tmp_path: Path) -> None:
+def test_cli_accepts_a_json_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     project_root = Path(__file__).parents[1]
     config_path = tmp_path / "game.json"
     config_path.write_text("{}", encoding="utf-8")
 
-    result = subprocess.run(
-        [sys.executable, "pac-man.py", str(config_path)],
-        cwd=project_root,
-        capture_output=True,
-        text=True,
-        check=False,
+    monkeypatch.setattr(app_module.AppMain, "run", lambda self: True)
+    spec = importlib.util.spec_from_file_location(
+        "pacman_cli",
+        project_root / "pac-man.py",
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    cli_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli_module)
+    main = cast(
+        Callable[[list[str] | None], int],
+        getattr(cli_module, "main"),
     )
 
-    assert result.returncode == 0
-    assert "Traceback" not in result.stderr
+    assert main([str(config_path)]) == 0
