@@ -49,6 +49,7 @@ class GameConfig(BaseModel):
     points_per_super_pacgum: int = Field(default=50, ge=0)
     points_per_ghost: int = Field(default=200, ge=0)
     level_max_time: int = Field(default=90, gt=0)
+    cheat_mode: bool = Field(default=False)
 
 
 def _warning(message: str) -> None:
@@ -166,6 +167,7 @@ def _normalize_config(data: dict[str, object]) -> dict[str, object]:
         "level_max_time": _safe_int(
             data, "level_max_time", 90, 1
         ),
+        "cheat_mode": _safe_bool(data, "cheat_mode", False)
     }
 
 

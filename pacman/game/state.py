@@ -302,8 +302,10 @@ class GameState(BaseModel):
                 ghost.be_eaten(now)
                 return UpdateResult.CONTINUE
 
-            self.lives -= 1
-            self.pacman.is_dying = True
+            if not self.config.cheat_mode:
+                self.lives -= 1
+                self.pacman.is_dying = True
+
             if self.lives <= 0:
                 return UpdateResult.LOSE
             return UpdateResult.CONTINUE
