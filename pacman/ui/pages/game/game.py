@@ -15,7 +15,10 @@ from pacman.ui.pages.game.pacman import DisplayPacman
 from pacman.ui.pages.game.pause import DisplayPause
 from pacman.ui.pages.game.dashboard import DisplayDashboard
 from pacman.ui.pages.game.next_lvl_modal import DisplayNextLvlModal
-from pacman.ui.pages.game.highscore import DisplayHighscoreModal
+from pacman.ui.pages.game.highscore import (
+    DisplayHighscoreModal,
+    GameOutcome,
+)
 
 
 class GamePage(Page):
@@ -118,6 +121,7 @@ class GamePage(Page):
                     return PagesEnum.MENU.value
             update_result = self.game_state.update()
             if update_result == UpdateResult.LOSE:
+                highscore_modal_renderer.outcome = GameOutcome.DEFEAT
                 highscore_modal_renderer.display_modal()
                 return PagesEnum.MENU.value
             maze_displayer.display_maze()
@@ -128,6 +132,7 @@ class GamePage(Page):
                     and len(self.game_state.pacgums) == 0):
                 next_lvl_modal_displayer.display_modal()
                 if self.game_state.next_level() == 1:
+                    highscore_modal_renderer.outcome = GameOutcome.VICTORY
                     highscore_modal_renderer.display_modal()
                     return PagesEnum.MENU.value
             clock.tick(FPS)

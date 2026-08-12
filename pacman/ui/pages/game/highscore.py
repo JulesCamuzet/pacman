@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from enum import Enum
 import pygame
 
 from pacman.game.state import GameState
@@ -14,6 +15,13 @@ from pacman.tick import SimpleClock
 from pacman.tools.draw import DrawTools
 
 
+class GameOutcome(str, Enum):
+    """Describe why the current game ended."""
+
+    DEFEAT = "defeat"
+    VICTORY = "victory"
+
+
 class DisplayHighscoreModal(BaseModel):
     """
     Display the modal allowing the player to enter their name to save
@@ -22,6 +30,7 @@ class DisplayHighscoreModal(BaseModel):
 
     screen: pygame.Surface
     game_state: GameState
+    outcome: GameOutcome = GameOutcome.DEFEAT
     player_name: str = ""
     highscores_manager: HighscoresManager | None = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -35,15 +44,24 @@ class DisplayHighscoreModal(BaseModel):
             config=self.game_state.config
         )
 
+    def get_summary_text(self) -> str:
+        """Return the score recap matching victory or defeat."""
+
+        if self.outcome == GameOutcome.VICTORY:
+            return (
+                "Congratulations! You won! "
+                f"Your score: {self.game_state.score}"
+            )
+        return f"Game Over. Your score: {self.game_state.score}"
+
     def __display_text(self) -> None:
         """
         Display the score recap text on the modal.
         """
 
-        text = f"Game Over. Your score: {self.game_state.score}"
         DrawTools.display_text(
             screen=self.screen,
-            text=text,
+            text=self.get_summary_text(),
             x=WINDOW_WIDTH // 2,
             y=WINDOW_HEIGHT // 2 - 60,
             font_size=FONT_SIZE_MEDIUM
