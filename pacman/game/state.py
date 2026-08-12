@@ -12,7 +12,7 @@ from pacman.game.ghosts import (
     GhostCorner,
     GhostMode,
 )
-from pacman.game.pacman import Pacman
+from pacman.game.pacman import Pacman, Direction
 from pacman.config import GameConfig
 from pacman.maze import MazeData, PacmanMazeGenerator
 from pacman.constants import (
@@ -257,6 +257,16 @@ class GameState(BaseModel):
         self.__init_ghosts()
         self.lives = self.config.lives
 
+    def __reset_pacman_effects(self) -> None:
+        """
+        Reset every temporary Pacman effect before a new level starts.
+        """
+
+        self.pacman.is_dying = False
+        self.pacman.was_dying = False
+        self.pacman.direction = Direction.RIGHT
+        self.pacman.next_direction = Direction.RIGHT
+
     def next_level(self) -> int:
         """
         Go to the next level.
@@ -270,6 +280,7 @@ class GameState(BaseModel):
         )
         self.__compute_maze_size()
         self.__init_pacman_position()
+        self.__reset_pacman_effects()   # <-- ajout
         self.__generate_rail()
         self.__generate_pacgums()
         self.__init_pacman_speed()
