@@ -1,12 +1,12 @@
-Feat: Cheat mode Jules En cours
-Feat: Time limitation per level Alexis en cours
-Feat: Victory screen (split victory and defeat) Alexis en cours
-Fix: perfect maze should always be false, remove option Alexis en cours
-Fix: cut effects and sounds when switching level.
-Fix: make ghosts go in spawn when we die.
-Fix: descrease ghosts speed
-Fix: Highscores, only alphanum and restrict empty names
-Fix: Improve error management
-Feat: Project management
-Feat: Update README
-Feat: Deploy game
+[*] Feat: Cheat mode Jules Fini
+[ ] Feat: Time limitation per level Alexis en cours
+[ ] Feat: Victory screen (split victory and defeat) Alexis en cours
+[ ] Fix: perfect maze should always be false, remove option Alexis en cours
+[ ] Fix: cut effects and sounds when switching level.
+[ ] Fix: make ghosts go in spawn when we die.
+[ ] Fix: descrease ghosts speed
+[ ] Fix: Highscores, only alphanum and restrict empty names
+[ ] Fix: Improve error management
+[ ] Feat: Project management
+[ ] Feat: Update README
+[ ] Feat: Deploy game
