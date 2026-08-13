@@ -112,12 +112,16 @@ class DisplayHighscoreModal(BaseModel):
             return False
 
         if event.key == pygame.K_RETURN:
+            if not self.player_name.strip():
+                return False
             self.__save_score()
             return True
         elif event.key == pygame.K_BACKSPACE:
             self.player_name = self.player_name[:-1]
-        elif len(self.player_name) < 10 and (
-            event.unicode.isalnum() or event.unicode == " "
+        elif (
+            len(self.player_name) < 10
+            and event.unicode.isascii()
+            and event.unicode.isalnum()
         ):
             self.player_name += event.unicode
 
