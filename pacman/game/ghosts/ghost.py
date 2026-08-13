@@ -8,12 +8,22 @@ import time
 
 from pacman.constants import (
     GHOST_FRIGHTENED_DURATION,
-    GHOST_RESPAWN_DELAY,
+    GHOST_GOING_HOME_DURATION,
+    GHOST_RESPAWN_DELAY
 )
 from pacman.game.pacman import DELTAS, Direction
 
 if TYPE_CHECKING:
     from pacman.game.state import GameState
+
+
+class GhostMode(Enum):
+    """Describe the current ghost behavior."""
+
+    CHASE = 0
+    FRIGHTENED = 1
+    EATEN = 2
+    GOING_HOME = 3
 
 
 class GhostKind(str, Enum):
@@ -32,14 +42,6 @@ class GhostCorner(str, Enum):
     TOP_RIGHT = "top_right"
     BOTTOM_LEFT = "bottom_left"
     BOTTOM_RIGHT = "bottom_right"
-
-
-class GhostMode(Enum):
-    """Describe the current ghost behavior."""
-
-    CHASE = 0
-    FRIGHTENED = 1
-    EATEN = 2
 
 
 class Ghost(BaseModel):
@@ -115,12 +117,18 @@ class Ghost(BaseModel):
             self.x // state.square_width,
             self.y // state.square_width,
         )
-        pacman_cell = (
-            state.pacman.x // state.square_width,
-            state.pacman.y // state.square_width,
-        )
+        if self.mode == GhostMode.GOING_HOME:
+            target_cell = (
+                self.start_x // state.square_width,
+                self.start_y // state.square_width,
+            )
+        else:
+            target_cell = (
+                state.pacman.x // state.square_width,
+                state.pacman.y // state.square_width,
+            )
         choices = self.get_neighbors(state, ghost_cell)
-        distances = self.__distance_map(state, pacman_cell)
+        distances = self.__distance_map(state, target_cell)
         reachable = [
             (distances[cell], direction)
             for cell, direction in choices
@@ -131,6 +139,13 @@ class Ghost(BaseModel):
         if self.mode == GhostMode.FRIGHTENED:
             return max(reachable, key=lambda choice: choice[0])[1]
         return min(reachable, key=lambda choice: choice[0])[1]
+
+    def send_home(self, now: float) -> None:
+        """Force a ghost to walk back to its corner for a short time."""
+
+        if self.mode != GhostMode.EATEN:
+            self.mode = GhostMode.GOING_HOME
+            self.frightened_until = now + GHOST_GOING_HOME_DURATION
 
     def become_frightened(self, now: float) -> None:
         """Make an active ghost edible for a limited duration."""
@@ -168,6 +183,11 @@ class Ghost(BaseModel):
             return
 
         if (self.mode == GhostMode.FRIGHTENED
+                and current_time >= self.frightened_until):
+            self.mode = GhostMode.CHASE
+            self.frightened_until = 0.0
+
+        if (self.mode == GhostMode.GOING_HOME
                 and current_time >= self.frightened_until):
             self.mode = GhostMode.CHASE
             self.frightened_until = 0.0

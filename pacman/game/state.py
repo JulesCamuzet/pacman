@@ -305,7 +305,7 @@ class GameState(BaseModel):
             return UpdateResult.CONTINUE
 
         for ghost in self.ghosts:
-            if (ghost.mode == GhostMode.EATEN
+            if (ghost.mode in (GhostMode.EATEN, GhostMode.GOING_HOME)
                     or not self.__ghost_collides_with_pacman(ghost)):
                 continue
             if ghost.mode == GhostMode.FRIGHTENED:
@@ -313,10 +313,11 @@ class GameState(BaseModel):
                 ghost.be_eaten(now)
                 return UpdateResult.CONTINUE
 
-            if not self.config.cheat_mode:
-                self.lives -= 1
-                self.pacman.is_dying = True
-
+            self.lives -= 1
+            self.pacman.is_dying = True
+            for other_ghost in self.ghosts:
+                if other_ghost.mode != GhostMode.EATEN:
+                    other_ghost.send_home(now)
             if self.lives <= 0:
                 return UpdateResult.LOSE
             return UpdateResult.CONTINUE
