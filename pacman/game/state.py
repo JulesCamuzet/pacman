@@ -20,6 +20,7 @@ from pacman.constants import (
     SPEED,
     FPS,
     WINDOW_WIDTH,
+    GHOST_SPEED
 )
 
 
@@ -207,7 +208,7 @@ class GameState(BaseModel):
             GhostCorner.BOTTOM_LEFT: (left, bottom),
             GhostCorner.BOTTOM_RIGHT: (right, bottom),
         }
-        ghost_speed = max(1, int(self.square_width * SPEED // FPS))
+        ghost_speed = max(1, int(self.square_width * GHOST_SPEED // FPS))
 
         for ghost in self.ghosts:
             ghost.x, ghost.y = positions[ghost.corner]
