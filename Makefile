@@ -43,6 +43,10 @@ install: $(VENV_PYTHON) check-wheel
 	$(PIP) install -r requirements.txt $(DEV_DEPS)
 	$(PIP) install ./$(MAZE_WHEEL)
 
+package: $(VENV_PYTHON)
+	$(PIP) install pyinstaller
+	$(VENV_BIN)/pyinstaller pac-man.spec --noconfirm
+
 run: $(VENV_PYTHON)
 	$(VENV_PYTHON) pac-man.py $(CONFIG)
 
@@ -54,6 +58,9 @@ clean:
 		-prune -exec rm -r {} +
 	@for cache_dir in .pytest_cache .mypy_cache .ruff_cache htmlcov; do \
 		if [ -d "$$cache_dir" ]; then rm -r "$$cache_dir"; fi; \
+	done
+	@for build_dir in build dist; do \
+		if [ -d "$$build_dir" ]; then rm -r "$$build_dir"; fi; \
 	done
 
 fclean: clean

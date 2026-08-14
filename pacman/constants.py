@@ -1,3 +1,6 @@
+from pacman.paths import get_asset_path
+
+
 # General
 FPS = 60
 
@@ -82,8 +85,8 @@ FONT_SIZE_LARGE = max(1, int(32 * _FONT_SCALE))
 FONT_SIZE_TITLE = max(1, int(36 * _FONT_SCALE))
 
 # Assets
-SPRITES_SHEET_PATH = "assets/sprites_sheet.png"
-FONT_PATH = "assets/Emulogic-zrEw.ttf"
+SPRITES_SHEET_PATH = str(get_asset_path("sprites_sheet.png"))
+FONT_PATH = str(get_asset_path("Emulogic-zrEw.ttf"))
 
 # Sprites
 SPRITES_WIDTH = 448

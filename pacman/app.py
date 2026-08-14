@@ -1,7 +1,6 @@
 """Prepare validated game data for the future user interface."""
 
 from pathlib import Path
-import traceback
 
 from pacman.config import GameConfig, ConfigGenerator
 from pacman.maze import MazeData
@@ -27,7 +26,7 @@ class AppMain:
             ui = Ui(config=self.config)
             ui.init()
             ui.run()
-        except Exception:
-            print(traceback.format_exc())
+        except Exception as e:
+            print(e)
 
         return True
