@@ -85,6 +85,20 @@ def _safe_filename(data: dict[str, object]) -> str:
     return value
 
 
+def _safe_bool(
+    data: dict[str, object],
+    key: str,
+    default: bool,
+) -> bool:
+    """Read a boolean value or return its safe default."""
+
+    value = data.get(key)
+    if type(value) is not bool:
+        _warning(f"'{key}' is invalid or missing; using {default}.")
+        return default
+    return value
+
+
 def _normalize_level(
     raw_level: object,
     index: int,

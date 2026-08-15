@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from enum import Enum
 from typing import TYPE_CHECKING
 from collections import deque
-import random
 import time
 
 from pacman.constants import (
@@ -22,9 +21,10 @@ class GhostMode(Enum):
     """Describe the current ghost behavior."""
 
     CHASE = 0
-    FRIGHTENED = 1
-    EATEN = 2
-    GOING_HOME = 3
+    SCATTER = 1
+    FRIGHTENED = 2
+    EATEN = 3
+    GOING_HOME = 4
 
 
 class GhostKind(str, Enum):
@@ -43,15 +43,6 @@ class GhostCorner(str, Enum):
     TOP_RIGHT = "top_right"
     BOTTOM_LEFT = "bottom_left"
     BOTTOM_RIGHT = "bottom_right"
-
-
-class GhostMode(Enum):
-    """Describe the current ghost behavior."""
-
-    CHASE = 0
-    SCATTER = 1
-    FRIGHTENED = 2
-    EATEN = 3
 
 
 class Ghost(BaseModel):
@@ -234,6 +225,17 @@ class Ghost(BaseModel):
         if not reachable:
             return None
         return min(reachable, key=lambda choice: choice[0])[1]
+
+    def reverse_direction(self) -> None:
+        """Flip the ghost to the opposite direction immediately."""
+
+        opposite = {
+            Direction.UP: Direction.DOWN,
+            Direction.RIGHT: Direction.LEFT,
+            Direction.DOWN: Direction.UP,
+            Direction.LEFT: Direction.RIGHT,
+        }
+        self.direction = opposite[self.direction]
 
     def send_home(self, now: float) -> None:
         """Force a ghost to walk back to its corner for a short time."""

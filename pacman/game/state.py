@@ -21,7 +21,6 @@ from pacman.constants import (
     SPEED,
     FPS,
     GHOST_MODE_DURATIONS,
-    GHOST_SPEED_RATIO,
     WINDOW_WIDTH,
     GHOST_SPEED
 )
