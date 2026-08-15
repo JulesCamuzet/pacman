@@ -20,7 +20,7 @@ The current game includes:
 - evaluator cheats for invincibility, level skip, ghost freeze, extra lives,
   and Pacman speed;
 - pause, life loss, game over, and a separate final victory screen;
-- a centered 1000×900 game window;
+- a centered window scaled from a 1000×1500 reference to fit the screen;
 - a standalone PyInstaller build specification.
 
 The remaining external release step is documented in
@@ -238,6 +238,8 @@ active ghosts to frightened mode, where BFS selects the legal direction that
 increases their distance from Pacman. An eaten ghost waits five seconds before
 respawning in its corner. `GHOST_SPEED_RATIO` is configured to `0.75`, with a
 final integer-speed guard that always keeps ghosts slower than Pacman.
+When Pacman loses a life, every active ghost follows BFS toward its own corner
+in `GOING_HOME` mode for three seconds instead of being teleported.
 
 ### Level outcome
 

@@ -111,7 +111,8 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 - [x] Alterner les modes scatter et chase.
 - [x] Gérer le mode frightened, les fantômes mangés et leur réapparition.
 - [x] Centraliser le ratio de vitesse des fantômes.
-- [x] Réinitialiser les fantômes après la perte d'une vie.
+- [x] Faire retourner les fantômes à pied vers leurs coins pendant trois
+  secondes après la perte d'une vie.
 - [x] Limiter le temps de chaque niveau.
 - [x] Séparer victoire finale et défaite.
 - [x] Forcer la génération de labyrinthes non parfaits.
@@ -146,6 +147,7 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | BFS commun aux quatre fantômes | Algorithme lisible, fiable et partagé | Chaque fantôme change seulement sa cible |
 | Cibles inspirées du Pacman classique | Éviter quatre poursuivants identiques | Rouge direct, rose en avant, bleu vectoriel, orange selon la distance |
 | Modes scatter/chase/frightened/eaten | Créer des respirations et une difficulté plus juste | Le comportement varie pendant la partie |
+| Retour `GOING_HOME` après une vie perdue | Éviter une téléportation visible | Chaque fantôme actif suit le BFS vers son coin pendant trois secondes |
 | Ratio fantôme configuré à 75 % | La première version était trop difficile | Arrondi borné pour garder au moins un pixel/frame d'écart avec Pacman |
 | Page Generate en une action | Garder une interface simple | Un seed aléatoire est créé puis le jeu démarre |
 | Timer basé sur une échéance | Éviter les dérives et gérer la pause | L'échéance est décalée pendant la pause |
@@ -159,7 +161,7 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Régression du highscore | Faible | Élevé | Service Pydantic unique utilisé par le moteur et toute l'UI |
 | IA trop difficile | Faible | Élevé | Modes classiques, fuite BFS et fantômes réellement plus lents |
 | Collision ressentie comme injuste | Faible | Élevé | Distance ramenée à 55 % d'une case et couverte par des tests |
-| Fenêtre trop grande selon l'écran | Faible | Moyen | Format fixe 1000×900 et contenu borné par des tests de mise en page |
+| Fenêtre trop grande selon l'écran | Faible | Moyen | Référence 1000×1500 réduite uniformément à 90 % de l'écran avec polices et maze proportionnels |
 | Maze injouable | Faible | Élevé | Vérification des dimensions, murs, coordonnées et shortest path |
 | Régression lors de l'intégration | Moyenne | Élevé | pytest, flake8, mypy et tests manuels avant fusion |
 | Packaging tardif | Moyenne | Élevé | Réserver un lot dédié avant la remise et tester sur machine propre |
@@ -175,8 +177,8 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Highscore absent ou vide | Fichier inexistant ou JSON vide | Retourner une liste vide côté API robuste ; initialiser le fichier avec `[]` |
 | Fantômes absents à l'écran | État moteur non relié au renderer | Ajouter `DisplayGhosts` et charger les sprites correspondants |
 | Fantômes trop rapides/difficiles | Poursuite trop efficace et vitesse entière parfois identique à Pacman | Scatter/chase, fuite frightened et vitesse entière strictement inférieure |
-| Partie perdue avant de jouer | Collision ou état mal réinitialisé | Réinitialiser Pacman, fantômes et cycle après une vie perdue |
-| Fenêtre mal adaptée | Ancien canevas haut de 1500 pixels | Utiliser un format fixe 1000×900 et recentrer le maze et le HUD |
+| Partie perdue avant de jouer | Collision répétée pendant l'animation de mort | Bloquer les nouvelles collisions et faire rentrer les fantômes à pied |
+| Fenêtre mal adaptée | Dimensions, polices et contenu mis à l'échelle séparément | Appliquer une échelle commune depuis la référence 1000×1500 |
 | Option perfect incohérente | Possibilité d'activer un mode non souhaité | Retirer l'option et toujours passer `perfect=False` |
 
 ## 10. Plan de tests d'acceptation
@@ -195,7 +197,7 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Cheat mode et contrôles | `tests/test_cheats.py` | Couvert |
 | Timer et pause | `tests/test_level_timer.py` | Couvert |
 | Page de génération | `tests/test_maze_generator_page.py` | Couvert |
-| Suite complète | `make test` | 86 tests validés le 15 août 2026 |
+| Suite complète | `make test` | 88 tests validés le 15 août 2026 |
 | Style et types | `make lint-strict` | flake8 et mypy strict validés le 15 août 2026 |
 
 ### Recette manuelle finale
@@ -205,7 +207,7 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Lancer avec `make run` | Fenêtre centrée, écran d'accueil, aucun traceback | À revalider |
 | Jouer avec les flèches | Pacman suit les couloirs et ne traverse pas les murs | À revalider |
 | Manger une super-pacgum | Tous les fantômes actifs deviennent mangeables temporairement | À revalider |
-| Toucher un fantôme actif | Une seule vie perdue et positions réinitialisées | À revalider |
+| Toucher un fantôme actif | Une seule vie perdue, puis retour BFS des fantômes vers leurs coins pendant trois secondes | Couvert automatiquement |
 | Perdre toutes les vies | Écran de défaite puis saisie du score | À revalider |
 | Vider tous les niveaux | Écran de victoire distinct | À revalider |
 | Attendre la fin du timer | Défaite propre à zéro seconde | À revalider |

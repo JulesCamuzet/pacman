@@ -8,7 +8,7 @@ higher-level Pygame drawing or transform helpers.
 | MiniLibX function or mechanism | Pygame equivalent used | Purpose |
 | --- | --- | --- |
 | `mlx_init()` | `pygame.init()` and `pygame.font.init()` | Initialize the graphical services |
-| `mlx_new_window()` | `pygame.display.set_mode()` and `pygame.display.set_caption()` | Create the fixed 1000×900 window |
+| `mlx_new_window()` | `pygame.display.set_mode()` and `pygame.display.set_caption()` | Create the centered window scaled from the 1000×1500 reference |
 | `mlx_clear_window()` | `Surface.fill()` | Clear the current frame |
 | `mlx_destroy_window()` | `pygame.quit()` | Release the graphical resources |
 | `mlx_new_image()` | `pygame.Surface()` | Create an image buffer |
