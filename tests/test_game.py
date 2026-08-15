@@ -12,6 +12,7 @@ import pytest
 from pacman import app as app_module
 from pacman import maze as maze_module
 from pacman.config import GameConfig, LevelConfig
+from pacman.constants import WINDOW_HEIGHT, WINDOW_WIDTH
 from pacman.ui import Ui
 from pacman.ui.pages import MenuPage, PagesEnum
 from pacman.ui.sprites import SpritesChunker
@@ -292,10 +293,10 @@ def test_ui_releases_pygame_when_the_loop_ends(
     assert quit_calls == [True]
 
 
-def test_ui_requests_a_centered_fixed_window(
+def test_ui_requests_the_centered_adaptive_window(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """SDL must center the fixed 1000x900 window before creating it."""
+    """SDL must center the computed window before creating it."""
 
     chunker = SpritesChunker(
         sheet_path="unused.png",
@@ -320,7 +321,7 @@ def test_ui_requests_a_centered_fixed_window(
     Ui(config=GameConfig()).init()
 
     assert os.environ["SDL_VIDEO_CENTERED"] == "1"
-    assert created_sizes == [(1000, 900)]
+    assert created_sizes == [(WINDOW_WIDTH, WINDOW_HEIGHT)]
 
 
 def test_ui_releases_pygame_when_initialization_fails(

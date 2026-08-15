@@ -5,23 +5,54 @@ from pacman.paths import get_asset_path
 FPS = 60
 
 # Window
-WINDOW_WIDTH = 1000
-WINDOW_HEIGHT = 900
+_BASE_WINDOW_WIDTH = 1000
+_BASE_WINDOW_HEIGHT = 1500
+
+
+def _compute_window_size() -> tuple[int, int]:
+    """Fit the reference window inside 90% of the detected screen."""
+
+    try:
+        import pygame
+
+        pygame.display.init()
+        info = pygame.display.Info()
+        screen_width = info.current_w
+        screen_height = info.current_h
+    except Exception:
+        return _BASE_WINDOW_WIDTH, _BASE_WINDOW_HEIGHT
+
+    if screen_width <= 0 or screen_height <= 0:
+        return _BASE_WINDOW_WIDTH, _BASE_WINDOW_HEIGHT
+
+    scale = min(
+        screen_width * 0.9 / _BASE_WINDOW_WIDTH,
+        screen_height * 0.9 / _BASE_WINDOW_HEIGHT,
+        1.0,
+    )
+    width = int(_BASE_WINDOW_WIDTH * scale)
+    height = int(_BASE_WINDOW_HEIGHT * scale)
+    return width, height
+
+
+WINDOW_WIDTH, WINDOW_HEIGHT = _compute_window_size()
 WINDOW_TITLE = "Pacman"
 
-CONTENT_START_X = 50
-CONTENT_END_X = 950
-CONTENT_START_Y = 150
-CONTENT_END_Y = 870
+_SCALE_X = WINDOW_WIDTH / _BASE_WINDOW_WIDTH
+_SCALE_Y = WINDOW_HEIGHT / _BASE_WINDOW_HEIGHT
+
+CONTENT_START_X = int(100 * _SCALE_X)
+CONTENT_END_X = int(900 * _SCALE_X)
+CONTENT_START_Y = int(300 * _SCALE_Y)
+CONTENT_END_Y = int(1400 * _SCALE_Y)
 
 # Fonts
-# Font sizes for the fixed 1000x900 window. Use these instead of hardcoding
-# values when calling DrawTools.display_text.
-FONT_SIZE_SMALL = 14
-FONT_SIZE_TEXT = 18
-FONT_SIZE_MEDIUM = 24
-FONT_SIZE_LARGE = 32
-FONT_SIZE_TITLE = 36
+_FONT_SCALE = min(_SCALE_X, _SCALE_Y)
+FONT_SIZE_SMALL = max(1, int(14 * _FONT_SCALE))
+FONT_SIZE_TEXT = max(1, int(18 * _FONT_SCALE))
+FONT_SIZE_MEDIUM = max(1, int(24 * _FONT_SCALE))
+FONT_SIZE_LARGE = max(1, int(32 * _FONT_SCALE))
+FONT_SIZE_TITLE = max(1, int(36 * _FONT_SCALE))
 
 # Assets
 SPRITES_SHEET_PATH = str(get_asset_path("sprites_sheet.png"))
@@ -40,7 +71,7 @@ FRAME_SLOWER = 5
 WELCOME_TEXT = "Press space to continue."
 
 # Game
-MAX_MAZE_SIZE = 480
+MAX_MAZE_SIZE = int(800 * _SCALE_X)
 WALLS_COLOR = (255, 255, 255)
 SPEED = 4.0  # Squares per second
 GHOST_SPEED_RATIO = 0.75
