@@ -381,11 +381,55 @@ def test_normal_collision_removes_one_life_only() -> None:
     assert state.update(now=10.0) == UpdateResult.CONTINUE
     assert state.lives == 2
     assert state.pacman.is_dying is True
-    assert (state.ghosts[0].x, state.ghosts[0].y) == (5, 5)
-    assert_ghost_mode(state.ghosts[0], GhostMode.SCATTER)
+    ghost = state.ghosts[0]
+    assert (ghost.x, ghost.y) == (15, 15)
+    assert_ghost_mode(ghost, GhostMode.GOING_HOME)
+    assert ghost.frightened_until == 13.0
 
+    ghost.speed = 1
+    distance_before = abs(ghost.x - ghost.start_x) + abs(
+        ghost.y - ghost.start_y
+    )
     assert state.update(now=10.1) == UpdateResult.CONTINUE
+    distance_after = abs(ghost.x - ghost.start_x) + abs(
+        ghost.y - ghost.start_y
+    )
+    assert distance_after < distance_before
     assert state.lives == 2
+
+
+def test_life_loss_does_not_reset_an_eaten_ghost() -> None:
+    """An eaten ghost keeps its own delayed respawn state."""
+
+    state = make_open_state()
+    state.lives = 3
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.speed = 0
+    attacker = RedGhost(
+        x=15,
+        y=15,
+        start_x=5,
+        start_y=5,
+        speed=0,
+        mode=GhostMode.CHASE,
+    )
+    eaten = BlueGhost(
+        x=25,
+        y=25,
+        start_x=5,
+        start_y=25,
+        speed=0,
+    )
+    eaten.be_eaten(now=8.0)
+    state.ghosts = [attacker, eaten]
+
+    state.update(now=10.0)
+
+    assert_ghost_mode(attacker, GhostMode.GOING_HOME)
+    assert_ghost_mode(eaten, GhostMode.EATEN)
+    assert (eaten.x, eaten.y) == (25, 25)
+    assert eaten.respawn_at == 13.0
 
 
 def test_visible_ghost_overlap_removes_one_life() -> None:

@@ -315,18 +315,6 @@ class GameState(BaseModel):
                     ghost.mode = new_mode
                     ghost.reverse_direction()
 
-    def reset_after_life_loss(self, now: float) -> None:
-        """Return every ghost home and restart with a scatter period."""
-
-        self.__reset_ghost_cycle(now)
-        for ghost in self.ghosts:
-            ghost.x = ghost.start_x
-            ghost.y = ghost.start_y
-            ghost.direction = Direction.RIGHT
-            ghost.mode = GhostMode.SCATTER
-            ghost.frightened_until = 0.0
-            ghost.respawn_at = 0.0
-
     def frighten_ghosts(self, now: float | None = None) -> None:
         """Make every active ghost edible and refresh the duration."""
 
@@ -479,7 +467,10 @@ class GameState(BaseModel):
 
             self.lives -= 1
             self.pacman.is_dying = True
-            self.reset_after_life_loss(now)
+            self.__reset_ghost_cycle(now)
+            for other_ghost in self.ghosts:
+                if other_ghost.mode != GhostMode.EATEN:
+                    other_ghost.send_home(now)
             if self.lives <= 0:
                 return UpdateResult.LOSE
             return UpdateResult.CONTINUE
@@ -501,6 +492,10 @@ class GameState(BaseModel):
             return UpdateResult.LOSE
         self.pacman.update(self)
         if self.pacman.is_dying:
+            if not self.cheat_ghosts_frozen:
+                for ghost in self.ghosts:
+                    if ghost.mode == GhostMode.GOING_HOME:
+                        ghost.update(self, current_time)
             return UpdateResult.CONTINUE
         if self.cheat_ghosts_frozen:
             self.ghost_clock_time = current_time
