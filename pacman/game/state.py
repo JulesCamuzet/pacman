@@ -263,7 +263,7 @@ class GameState(BaseModel):
         if self.ghost_clock_time is not None:
             self.ghost_clock_time += duration
         for ghost in self.ghosts:
-            if ghost.mode == GhostMode.FRIGHTENED:
+            if ghost.mode in (GhostMode.FRIGHTENED, GhostMode.GOING_HOME):
                 ghost.frightened_until += duration
             elif ghost.mode == GhostMode.EATEN:
                 ghost.respawn_at += duration
@@ -420,12 +420,12 @@ class GameState(BaseModel):
 
             self.lives -= 1
             self.pacman.is_dying = True
+            self.__reset_ghost_cycle(now)
             for other_ghost in self.ghosts:
                 if other_ghost.mode != GhostMode.EATEN:
                     other_ghost.send_home(now)
             if self.lives <= 0:
                 return UpdateResult.LOSE
-            self.reset_after_life_loss(now)
             return UpdateResult.CONTINUE
 
         return UpdateResult.CONTINUE
