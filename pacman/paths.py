@@ -75,4 +75,6 @@ def get_user_data_dir() -> Path:
 def get_highscores_path(filename: str = "highscores.json") -> Path:
     """Writable path for the highscores save file."""
 
-    return get_user_data_dir() / filename
+    if getattr(sys, "frozen", False):
+        return get_user_data_dir() / Path(filename).name
+    return Path(filename)

@@ -1,15 +1,20 @@
 import json
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
 import sys
 from typing import Callable, cast
 
+import pygame
 import pytest
 
 from pacman import app as app_module
 from pacman import maze as maze_module
-from pacman.config import LevelConfig
+from pacman.config import GameConfig, LevelConfig
+from pacman.ui import Ui
+from pacman.ui.pages import MenuPage, PagesEnum
+from pacman.ui.sprites import SpritesChunker
 
 
 def test_generate_maze_returns_data_with_requested_dimensions() -> None:
@@ -62,14 +67,18 @@ def test_generate_maze_always_disables_perfect_mode(
         def __init__(self, **kwargs: object) -> None:
             received.update(kwargs)
             self.shortest_path = "ES"
-            self.maze = [[9, 3], [12, 6]]
+            self.maze = [
+                [9, 1, 3],
+                [8, 0, 2],
+                [12, 4, 6],
+            ]
             self.maze_entry = (0, 0)
-            self.maze_exit = (1, 1)
+            self.maze_exit = (2, 2)
 
     monkeypatch.setattr(maze_module, "MazeGenerator", FakeGenerator)
 
     maze_module.PacmanMazeGenerator.generate_maze(
-        LevelConfig(width=2, height=2, seed=42)
+        LevelConfig(width=3, height=3, seed=42)
     )
 
     assert received["perfect"] is False
@@ -190,3 +199,144 @@ def test_cli_accepts_a_json_configuration(
     )
 
     assert main([str(config_path)]) == 0
+
+
+def test_frozen_cli_uses_its_bundled_config_without_an_argument(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A packaged executable must start directly from a platform."""
+
+    project_root = Path(__file__).parents[1]
+    config_path = tmp_path / "config.json"
+    config_path.write_text("{}", encoding="utf-8")
+    spec = importlib.util.spec_from_file_location(
+        "frozen_pacman_cli",
+        project_root / "pac-man.py",
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    cli_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli_module)
+    main = cast(
+        Callable[[list[str] | None], int],
+        getattr(cli_module, "main"),
+    )
+    launched_paths: list[Path] = []
+
+    def record_run(self: object) -> bool:
+        launched_paths.append(getattr(self, "config_path"))
+        return True
+
+    monkeypatch.setattr(cli_module.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(
+        cli_module,
+        "get_default_config_path",
+        lambda: config_path,
+    )
+    monkeypatch.setattr(app_module.AppMain, "run", record_run)
+
+    assert main([]) == 0
+    assert launched_paths == [config_path]
+
+
+@pytest.mark.parametrize("target", ["config-check", "maze-check"])
+def test_make_validation_targets_run_successfully(target: str) -> None:
+    """The documented validation commands must use the current API."""
+
+    project_root = Path(__file__).parents[1]
+    result = subprocess.run(
+        ["make", target],
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_ui_releases_pygame_when_the_loop_ends(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The graphical resource must be released on every normal exit."""
+
+    screen = pygame.Surface((1000, 900))
+    page = MenuPage(screen=screen)
+    ui = Ui(
+        screen=screen,
+        current_page=page,
+        sprites_chunker=SpritesChunker(
+            sheet_path="unused.png",
+            columns_count=1,
+            rows_count=1,
+            columns_width=1,
+            rows_height=1,
+        ),
+        config=GameConfig(),
+    )
+    quit_calls: list[bool] = []
+    monkeypatch.setattr(
+        MenuPage,
+        "render",
+        lambda self: PagesEnum.QUIT.value,
+    )
+    monkeypatch.setattr(pygame.event, "get", lambda: [])
+    monkeypatch.setattr(
+        "pacman.ui.ui.SimpleClock.tick",
+        lambda self, fps: 0.0,
+    )
+    monkeypatch.setattr(pygame, "quit", lambda: quit_calls.append(True))
+
+    assert ui.run() == PagesEnum.QUIT.value
+    assert quit_calls == [True]
+
+
+def test_ui_requests_a_centered_fixed_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """SDL must center the fixed 1000x900 window before creating it."""
+
+    chunker = SpritesChunker(
+        sheet_path="unused.png",
+        columns_count=1,
+        rows_count=1,
+        columns_width=1,
+        rows_height=1,
+    )
+    created_sizes: list[tuple[int, int]] = []
+
+    def load_without_disk(self: Ui) -> None:
+        self.sprites_chunker = chunker
+
+    def create_surface(size: tuple[int, int]) -> pygame.Surface:
+        created_sizes.append(size)
+        return pygame.Surface(size)
+
+    monkeypatch.delenv("SDL_VIDEO_CENTERED", raising=False)
+    monkeypatch.setattr(Ui, "_Ui__load_sprites", load_without_disk)
+    monkeypatch.setattr(pygame.display, "set_mode", create_surface)
+
+    Ui(config=GameConfig()).init()
+
+    assert os.environ["SDL_VIDEO_CENTERED"] == "1"
+    assert created_sizes == [(1000, 900)]
+
+
+def test_ui_releases_pygame_when_initialization_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A startup error must not leave Pygame resources initialized."""
+
+    quit_calls: list[bool] = []
+    monkeypatch.setattr(
+        pygame.display,
+        "set_mode",
+        lambda size: (_ for _ in ()).throw(RuntimeError("display failure")),
+    )
+    monkeypatch.setattr(pygame, "quit", lambda: quit_calls.append(True))
+
+    with pytest.raises(RuntimeError, match="display failure"):
+        Ui(config=GameConfig()).init()
+
+    assert quit_calls == [True]

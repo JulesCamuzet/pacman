@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict
+from pathlib import Path
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from enum import Enum
 import pygame
 
@@ -10,7 +12,13 @@ from pacman.constants import (
     FONT_SIZE_MEDIUM,
     FONT_SIZE_TEXT
 )
-from pacman.scores import HighscoresManager
+from pacman.highscores import (
+    HighscoreEntry,
+    add_highscore,
+    load_highscores,
+    save_highscores,
+)
+from pacman.paths import get_highscores_path
 from pacman.tick import SimpleClock
 from pacman.tools.draw import DrawTools
 
@@ -32,7 +40,8 @@ class DisplayHighscoreModal(BaseModel):
     game_state: GameState
     outcome: GameOutcome = GameOutcome.DEFEAT
     player_name: str = ""
-    highscores_manager: HighscoresManager | None = None
+    scores: list[HighscoreEntry] = Field(default_factory=list)
+    score_path: Path | None = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def init(self) -> None:
@@ -40,9 +49,10 @@ class DisplayHighscoreModal(BaseModel):
         Init the display highscores modal.
         """
 
-        self.highscores_manager = HighscoresManager(
-            config=self.game_state.config
+        self.score_path = get_highscores_path(
+            self.game_state.config.highscore_filename
         )
+        self.scores = load_highscores(self.score_path)
 
     def get_summary_text(self) -> str:
         """Return the score recap matching victory or defeat."""
@@ -96,26 +106,23 @@ class DisplayHighscoreModal(BaseModel):
             color=(255, 255, 0)
         )
 
-    def __save_score(self) -> None:
-        """
-        Save the score.
-        """
+    def save_score(self) -> bool:
+        """Validate and persist the current result in the top ten."""
 
-        if self.highscores_manager is None:
-            raise Exception(
-                "Init Highscores modal before using it."
+        if self.score_path is None:
+            raise Exception("Init Highscores modal before using it.")
+        try:
+            updated_scores = add_highscore(
+                self.scores,
+                self.player_name,
+                self.game_state.score,
             )
-        scores = self.highscores_manager.get_highscores()
-        for score in scores:
-            if self.game_state.score > score["score"]:
-                scores.append({
-                    "name": self.player_name,
-                    "score": self.game_state.score
-                })
-                scores.sort(key=lambda s: s["score"], reverse=True)
-                scores.pop()
-                self.highscores_manager.update_scores(scores)
-                return
+        except ValidationError:
+            return False
+        if not save_highscores(self.score_path, updated_scores):
+            return False
+        self.scores = updated_scores
+        return True
 
     def __handle_event(self, event: pygame.event.Event) -> bool:
         """
@@ -132,20 +139,23 @@ class DisplayHighscoreModal(BaseModel):
         if event.key == pygame.K_RETURN:
             if not self.player_name.strip():
                 return False
-            self.__save_score()
+            self.save_score()
             return True
         elif event.key == pygame.K_BACKSPACE:
             self.player_name = self.player_name[:-1]
         elif (
             len(self.player_name) < 10
             and event.unicode.isascii()
-            and event.unicode.isalnum()
+            and (
+                event.unicode.isalnum()
+                or event.unicode == " "
+            )
         ):
             self.player_name += event.unicode
 
         return False
 
-    def display_modal(self) -> None:
+    def display_modal(self) -> bool:
         """
         Display the highscore modal until the player validates their
         name.
@@ -156,8 +166,7 @@ class DisplayHighscoreModal(BaseModel):
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
-                    break
+                    return False
                 if self.__handle_event(event):
                     running = False
                     break
@@ -168,3 +177,4 @@ class DisplayHighscoreModal(BaseModel):
             self.__display_input()
             clock.tick(FPS)
             pygame.display.flip()
+        return True

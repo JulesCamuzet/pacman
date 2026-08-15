@@ -44,6 +44,8 @@ class WelcomePage(Page):
         )
 
     def __display_pacman(self) -> None:
+        """Draw the current large Pacman animation frame."""
+
         if self.pacman_animation is None:
             return
 

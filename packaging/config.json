@@ -1,14 +1,14 @@
 # Pacman configuration.
 # The first level is fixed; seed 0 makes later levels random.
 {
-  "highscore_filename": "./_internal/scores.json",
+  "highscore_filename": "scores.json",
   "lives": 3,
-  "pacgum": 10,
+  "pacgum": 20000,
   "points_per_pacgum": 10,
   "points_per_super_pacgum": 50,
   "points_per_ghost": 200,
   "level_max_time": 90,
-  "cheat_mode": false,
+  "cheat_mode": true,
   "levels": [
     {
       "width": 14,
@@ -18,47 +18,47 @@
     {
       "width": 14,
       "height": 18,
-      "seed": 12
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 392
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 9
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 3039
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 5
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 8
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 39284
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 3909449
+      "seed": 0
     },
     {
       "width": 14,
       "height": 18,
-      "seed": 69
+      "seed": 0
     }
   ]
 }

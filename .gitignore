@@ -2,6 +2,7 @@
 /en.subject*.pdf
 /docs/superpowers/
 /.worktrees/
+/tmp/
 
 # Operating system files
 .DS_Store

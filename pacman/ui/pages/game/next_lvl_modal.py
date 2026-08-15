@@ -4,10 +4,12 @@ import time
 
 from pacman.game.state import GameState
 from pacman.constants import (
+    FPS,
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
     FONT_SIZE_MEDIUM
 )
+from pacman.tick import SimpleClock
 from pacman.tools.draw import DrawTools
 
 
@@ -34,15 +36,19 @@ class DisplayNextLvlModal(BaseModel):
             font_size=FONT_SIZE_MEDIUM
         )
 
-    def display_modal(self) -> None:
+    def display_modal(self) -> bool:
         """
         Display the next level modal.
         """
 
         start = time.perf_counter()
-        now = time.perf_counter()
-        while now - start < 3:
+        clock = SimpleClock()
+        while time.perf_counter() - start < 3:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
             self.screen.fill((0, 0, 0))
             self.__display_text()
             pygame.display.flip()
-            now = time.perf_counter()
+            clock.tick(FPS)
+        return True

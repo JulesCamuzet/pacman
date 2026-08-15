@@ -1,5 +1,3 @@
-import pytest
-
 from pacman.game.ghosts import (
     BlueGhost,
     Ghost,
@@ -121,10 +119,8 @@ def test_chase_direction_uses_the_shortest_bfs_distance() -> None:
     assert ghost.choose_direction(state) == Direction.RIGHT
 
 
-def test_frightened_direction_is_random_but_does_not_reverse(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Frightened ghosts wander without voluntarily turning around."""
+def test_frightened_direction_runs_away_without_reversing() -> None:
+    """A frightened ghost must choose the safest legal direction."""
 
     state = make_open_state()
     state.pacman.x = 25
@@ -135,12 +131,7 @@ def test_frightened_direction_is_random_but_does_not_reverse(
         direction=Direction.RIGHT,
         mode=GhostMode.FRIGHTENED,
     )
-    monkeypatch.setattr(
-        "pacman.game.ghosts.ghost.random.choice",
-        lambda choices: choices[0],
-    )
-
-    assert ghost.choose_direction(state) == Direction.UP
+    assert ghost.choose_direction(state) == Direction.DOWN
 
 
 def test_ghost_does_not_reverse_during_normal_chase() -> None:
@@ -405,11 +396,26 @@ def test_visible_ghost_overlap_removes_one_life() -> None:
     state.pacman.x = 15
     state.pacman.y = 15
     state.pacman.speed = 0
-    state.ghosts = [RedGhost(x=22, y=15, speed=0)]
+    state.ghosts = [RedGhost(x=20, y=15, speed=0)]
 
     assert state.update(now=10.0) == UpdateResult.CONTINUE
     assert state.lives == 2
     assert state.pacman.is_dying is True
+
+
+def test_nearby_but_separate_sprites_do_not_collide() -> None:
+    """A visible gap between entity centers must not cost a life."""
+
+    state = make_open_state()
+    state.lives = 3
+    state.pacman.x = 15
+    state.pacman.y = 15
+    state.pacman.speed = 0
+    state.ghosts = [RedGhost(x=22, y=15, speed=0)]
+
+    assert state.update(now=10.0) == UpdateResult.CONTINUE
+    assert state.lives == 3
+    assert state.pacman.is_dying is False
 
 
 def test_frightened_collision_scores_and_eats_the_ghost() -> None:

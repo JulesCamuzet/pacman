@@ -13,7 +13,7 @@ MAZE_WHEEL := $(firstword $(MAZE_WHEELS))
 DEV_DEPS := pytest flake8 mypy
 
 .PHONY: all help install check-wheel run debug clean fclean re
-.PHONY: lint lint-strict test config-check maze-check
+.PHONY: lint lint-strict test config-check maze-check package
 
 all: help
 
@@ -46,6 +46,7 @@ install: $(VENV_PYTHON) check-wheel
 package: $(VENV_PYTHON)
 	$(PIP) install pyinstaller
 	$(VENV_BIN)/pyinstaller pac-man.spec --noconfirm
+	cp packaging/README.txt dist/pac-man/README.txt
 
 run: $(VENV_PYTHON)
 	$(VENV_PYTHON) pac-man.py $(CONFIG)
@@ -82,7 +83,7 @@ test: $(VENV_PYTHON)
 	$(PYTEST)
 
 config-check: $(VENV_PYTHON)
-	$(VENV_PYTHON) -c "from pacman.config import load_config; config = load_config('$(CONFIG)'); print('Configuration OK :', len(config.levels), 'niveaux')"
+	$(VENV_PYTHON) -c "from pacman.config import ConfigGenerator; config = ConfigGenerator.load_config('$(CONFIG)'); print('Configuration OK :', len(config.levels), 'niveaux')"
 
 maze-check: $(VENV_PYTHON)
-	$(VENV_PYTHON) -c "from pacman.config import LevelConfig; from pacman.maze import generate_maze; maze = generate_maze(LevelConfig()); print('MazeGenerator OK : carte', str(maze.width) + 'x' + str(maze.height), 'chemin', len(maze.shortest_path))"
+	$(VENV_PYTHON) -c "from pacman.config import LevelConfig; from pacman.maze import PacmanMazeGenerator; maze = PacmanMazeGenerator.generate_maze(LevelConfig()); print('MazeGenerator OK : carte', str(maze.width) + 'x' + str(maze.height), 'chemin', len(maze.shortest_path))"

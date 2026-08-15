@@ -1,4 +1,4 @@
-"""Prepare validated game data for the future user interface."""
+"""Load validated configuration and start the Pygame interface."""
 
 from pathlib import Path
 
@@ -16,7 +16,7 @@ class AppMain:
         self.config: GameConfig | None = None
 
     def run(self) -> bool:
-        """Load all data required by the future user interface."""
+        """Load the configuration and run the user interface safely."""
 
         self.config = ConfigGenerator.load_config(self.config_path)
 
@@ -25,6 +25,7 @@ class AppMain:
             ui.init()
             ui.run()
         except Exception as e:
-            print(e)
+            print(f"Application error: {e}")
+            return False
 
         return True

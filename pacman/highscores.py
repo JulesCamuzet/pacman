@@ -101,6 +101,7 @@ def save_highscores(
         for entry in _top_ten(scores)
     ]
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(data, indent=2) + "\n",
             encoding="utf-8",

@@ -1,9 +1,15 @@
 from pathlib import Path
 
+import pygame
 import pytest
 from pydantic import ValidationError
 
 from pacman import highscores as highscore_module
+from pacman.config import GameConfig
+from pacman.game.state import GameState
+from pacman.ui.pages import PagesEnum
+from pacman.ui.pages.game.highscore import DisplayHighscoreModal
+from pacman.ui.pages.scores import ScoresPage
 
 
 def test_add_highscore_sorts_and_keeps_top_ten() -> None:
@@ -65,3 +71,67 @@ def test_load_highscores_handles_missing_or_broken_file(
 
     assert missing == []
     assert broken == []
+
+
+def test_save_highscores_creates_the_parent_directory(
+    tmp_path: Path,
+) -> None:
+    """A configured score directory may not exist on first launch."""
+
+    score_path = tmp_path / "new" / "scores.json"
+
+    saved = highscore_module.save_highscores(
+        score_path,
+        [highscore_module.HighscoreEntry(name="Alex", score=42)],
+    )
+
+    assert saved is True
+    assert highscore_module.load_highscores(score_path)[0].score == 42
+
+
+def test_score_modal_saves_the_first_score(
+    tmp_path: Path,
+) -> None:
+    """An empty leaderboard must accept its first game result."""
+
+    score_path = tmp_path / "scores.json"
+    score_path.write_text("[]", encoding="utf-8")
+    state = GameState(
+        config=GameConfig(highscore_filename=str(score_path)),
+        score=120,
+    )
+    modal = DisplayHighscoreModal(
+        screen=pygame.Surface((1000, 900)),
+        game_state=state,
+        player_name="Sam 2",
+    )
+    modal.init()
+
+    assert modal.save_score() is True
+    assert highscore_module.load_highscores(score_path) == [
+        highscore_module.HighscoreEntry(name="Sam 2", score=120)
+    ]
+
+
+def test_scores_page_handles_a_missing_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Opening highscores without a save file must keep the UI alive."""
+
+    page = ScoresPage(
+        screen=pygame.Surface((1000, 900)),
+        config=GameConfig(
+            highscore_filename=str(tmp_path / "missing.json")
+        ),
+    )
+    monkeypatch.setattr(pygame.event, "get", lambda: [
+        pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE),
+    ])
+    monkeypatch.setattr(
+        "pacman.ui.pages.scores.SimpleClock.tick",
+        lambda self, fps: 0.0,
+    )
+
+    assert page.render() == PagesEnum.MENU.value
+    assert page.scores == []

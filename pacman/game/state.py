@@ -22,7 +22,7 @@ from pacman.constants import (
     FPS,
     GHOST_MODE_DURATIONS,
     WINDOW_WIDTH,
-    GHOST_SPEED
+    GHOST_SPEED_RATIO,
 )
 
 
@@ -66,6 +66,10 @@ class GameState(BaseModel):
     ghost_clock_time: float | None = None
     level_deadline: float | None = None
     remaining_time: int = 0
+    base_pacman_speed: int = 1
+    cheat_invincible: bool = False
+    cheat_ghosts_frozen: bool = False
+    cheat_speed_boost: bool = False
 
     def __generate_rail(self) -> None:
         """
@@ -194,8 +198,10 @@ class GameState(BaseModel):
             )
 
         dist_per_sec = self.square_width * SPEED
-        speed = int(dist_per_sec // FPS)
-        self.pacman.speed = speed
+        self.base_pacman_speed = max(2, round(dist_per_sec / FPS))
+        self.pacman.speed = self.base_pacman_speed
+        if self.cheat_speed_boost:
+            self.pacman.speed *= 2
 
     def __init_ghosts(self) -> None:
         """Place one ghost at the center of each maze corner."""
@@ -216,7 +222,13 @@ class GameState(BaseModel):
             GhostCorner.BOTTOM_LEFT: (left, bottom),
             GhostCorner.BOTTOM_RIGHT: (right, bottom),
         }
-        ghost_speed = max(1, int(self.square_width * GHOST_SPEED // FPS))
+        ghost_speed = max(
+            1,
+            min(
+                self.pacman.speed - 1,
+                round(self.pacman.speed * GHOST_SPEED_RATIO),
+            ),
+        )
 
         for ghost in self.ghosts:
             ghost.x, ghost.y = positions[ghost.corner]
@@ -324,6 +336,51 @@ class GameState(BaseModel):
                 ghost.reverse_direction()
             ghost.become_frightened(current_time)
 
+    def toggle_invincibility(self) -> bool:
+        """Toggle collision immunity when evaluator cheats are enabled."""
+
+        if not self.config.cheat_mode:
+            return False
+        self.cheat_invincible = not self.cheat_invincible
+        return self.cheat_invincible
+
+    def toggle_ghost_freeze(self) -> bool:
+        """Toggle autonomous ghost movement for easier evaluation."""
+
+        if not self.config.cheat_mode:
+            return False
+        self.cheat_ghosts_frozen = not self.cheat_ghosts_frozen
+        return self.cheat_ghosts_frozen
+
+    def add_cheat_life(self) -> bool:
+        """Add one life when evaluator cheats are enabled."""
+
+        if not self.config.cheat_mode:
+            return False
+        self.lives += 1
+        return True
+
+    def toggle_speed_boost(self) -> bool:
+        """Toggle a double-speed Pacman evaluator helper."""
+
+        if not self.config.cheat_mode:
+            return False
+        self.cheat_speed_boost = not self.cheat_speed_boost
+        multiplier = 2 if self.cheat_speed_boost else 1
+        self.pacman.speed = self.base_pacman_speed * multiplier
+        return self.cheat_speed_boost
+
+    def skip_level(self) -> bool:
+        """Remove every collectible to trigger normal level completion."""
+
+        if not self.config.cheat_mode:
+            return False
+        self.pacgums.clear()
+        self.super_pacgums.clear()
+        self.pacman.pacgums = self.pacgums
+        self.pacman.super_pacgums = self.super_pacgums
+        return True
+
     def __compute_maze_size(self) -> None:
         """
         Compute the maze pixels width.
@@ -383,7 +440,7 @@ class GameState(BaseModel):
         )
         self.__compute_maze_size()
         self.__init_pacman_position()
-        self.__reset_pacman_effects()   # <-- ajout
+        self.__reset_pacman_effects()
         self.__generate_rail()
         self.__generate_pacgums()
         self.__init_pacman_speed()
@@ -395,7 +452,7 @@ class GameState(BaseModel):
     def __ghost_collides_with_pacman(self, ghost: Ghost) -> bool:
         """Return whether a ghost is close enough to touch Pacman."""
 
-        collision_distance = max(1, round(self.square_width * 0.8))
+        collision_distance = max(1, round(self.square_width * 0.55))
         return (
             abs(ghost.x - self.pacman.x) <= collision_distance
             and abs(ghost.y - self.pacman.y) <= collision_distance
@@ -417,13 +474,12 @@ class GameState(BaseModel):
                 self.score += self.config.points_per_ghost
                 ghost.be_eaten(now)
                 return UpdateResult.CONTINUE
+            if self.cheat_invincible:
+                return UpdateResult.CONTINUE
 
             self.lives -= 1
             self.pacman.is_dying = True
-            self.__reset_ghost_cycle(now)
-            for other_ghost in self.ghosts:
-                if other_ghost.mode != GhostMode.EATEN:
-                    other_ghost.send_home(now)
+            self.reset_after_life_loss(now)
             if self.lives <= 0:
                 return UpdateResult.LOSE
             return UpdateResult.CONTINUE
@@ -444,8 +500,13 @@ class GameState(BaseModel):
         if self.__update_level_timer(current_time):
             return UpdateResult.LOSE
         self.pacman.update(self)
-        self.update_ghost_mode(current_time)
-        for ghost in self.ghosts:
-            ghost.update(self, current_time)
+        if self.pacman.is_dying:
+            return UpdateResult.CONTINUE
+        if self.cheat_ghosts_frozen:
+            self.ghost_clock_time = current_time
+        else:
+            self.update_ghost_mode(current_time)
+            for ghost in self.ghosts:
+                ghost.update(self, current_time)
 
         return self.__resolve_ghost_collisions(current_time)

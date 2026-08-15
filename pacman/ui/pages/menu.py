@@ -15,7 +15,7 @@ MENU_ITEMS = [
     "Play",
     "Generate Maze",
     "Instructions",
-    "Scores",
+    "View Highscores",
     "Quit"
 ]
 
@@ -94,6 +94,8 @@ class MenuPage(Page):
         running = True
         while running:
             for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return PagesEnum.QUIT.value
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.__handle_keyup()

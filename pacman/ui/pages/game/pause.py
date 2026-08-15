@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 import pygame
 
+from pacman.ui.pages import PagesEnum
 from pacman.tick import SimpleClock
 from pacman.constants import (
     WINDOW_WIDTH,
@@ -71,13 +72,17 @@ class DisplayPause(BaseModel):
         running = True
         while running:
             for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return PagesEnum.QUIT.value
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.__handle_keyup()
                     if event.key == pygame.K_DOWN:
                         self.__handle_keydown()
                     if event.key == pygame.K_RETURN:
-                        return self.selected_menu_item_index
+                        if self.selected_menu_item_index == 0:
+                            return PagesEnum.GAME.value
+                        return PagesEnum.MENU.value
 
             self.screen.fill((0, 0, 0))
             self.__display_menu()

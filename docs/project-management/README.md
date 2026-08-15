@@ -1,6 +1,6 @@
 # Project management — Pacman
 
-Dernière mise à jour : 13 août 2026
+Dernière mise à jour : 15 août 2026
 Équipe : **Alexis Lasserre (`allasser`)** et **Jules Camuzet (`jcamuzet`)**
 
 Ce document rassemble les preuves de gestion du projet : organisation de
@@ -26,7 +26,8 @@ Contraintes suivies par l'équipe :
 - highscores persistants et limités aux dix meilleurs résultats ;
 - documentation de l'installation, de l'architecture et de la gestion du
   projet ;
-- cheat mode, packaging et déploiement Itch.io avant la remise finale.
+- cheat mode et packaging local terminés ; déploiement Itch.io à effectuer
+  avant la remise finale.
 
 ## 2. Organisation de l'équipe
 
@@ -76,7 +77,8 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | 2–7 août | Fantômes et stabilisation | Phase décalée : analyse et préparation avant implémentation | Retard sur les fantômes |
 | 8–10 août | IA et intégration | BFS, quatre fantômes, collisions, rendu et menu de génération par Alexis | Retard rattrapé |
 | 11–13 août | Finition fonctionnelle | maze non parfait, IA équilibrée, timer, victoire et tests d'application | Conforme au planning révisé |
-| Avant remise | Livraison | Cheat mode, highscore UI final, packaging, test multi-plateforme et Itch.io | À terminer |
+| 15 août | Conformité | Cheat mode, highscores UI, IA, configuration, tests et package macOS ARM64 | Réalisé |
+| Avant remise | Livraison | Upload Itch.io et test du téléchargement sur une machine propre | À terminer |
 
 ## 5. Journal de progression
 
@@ -115,28 +117,22 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 - [x] Forcer la génération de labyrinthes non parfaits.
 - [x] Ajouter une page de génération qui lance directement la partie.
 - [x] Ajouter des tests automatisés pour les règles principales.
+- [x] Ajouter et documenter le cheat mode d'évaluation.
+- [x] Relier toute l'interface au service Pydantic des highscores.
+- [x] Permettre à une liste vide ou partielle d'atteindre dix scores.
+- [x] Garantir une vitesse effective des fantômes inférieure à Pacman.
+- [x] Préparer et lancer le package PyInstaller macOS ARM64.
 
 ### En cours
 
 - [ ] Tester manuellement une partie complète sur les machines cibles.
 - [ ] Ajuster la zone de collision Pacman/fantôme après test de jouabilité.
-- [ ] Corriger l'arrondi qui peut rendre la vitesse effective des fantômes
-  identique à celle de Pacman malgré le ratio configuré à 75 %.
-- [ ] Relier toutes les pages de scores à l'API validée de
-  `pacman/highscores.py`.
-- [ ] Améliorer les derniers messages d'erreur visibles par le joueur.
+- [ ] Télécharger le futur package publié et jouer une partie complète sur
+  une machine propre.
 
 ### À faire avant la remise
 
-- [ ] Ajouter le cheat mode demandé par le sujet et le documenter.
-- [ ] Permettre à une liste de 0 à 9 scores de se remplir, puis conserver
-  correctement les dix meilleurs scores.
-- [ ] Vérifier le nom du joueur : non vide, dix caractères maximum et format
-  valide.
-- [ ] Tester le jeu sans fichier de scores et avec un JSON corrompu.
-- [ ] Préparer le package exécutable pour les plateformes demandées.
 - [ ] Déployer la version jouable sur Itch.io.
-- [ ] Vérifier une dernière fois le mapping MLX et tous les critères du sujet.
 
 ## 7. Choix techniques et décisions
 
@@ -150,7 +146,7 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | BFS commun aux quatre fantômes | Algorithme lisible, fiable et partagé | Chaque fantôme change seulement sa cible |
 | Cibles inspirées du Pacman classique | Éviter quatre poursuivants identiques | Rouge direct, rose en avant, bleu vectoriel, orange selon la distance |
 | Modes scatter/chase/frightened/eaten | Créer des respirations et une difficulté plus juste | Le comportement varie pendant la partie |
-| Ratio fantôme configuré à 75 % | La première version était trop difficile | Réglage centralisé ; l'arrondi en pixels entiers reste à corriger |
+| Ratio fantôme configuré à 75 % | La première version était trop difficile | Arrondi borné pour garder au moins un pixel/frame d'écart avec Pacman |
 | Page Generate en une action | Garder une interface simple | Un seed aléatoire est créé puis le jeu démarre |
 | Timer basé sur une échéance | Éviter les dérives et gérer la pause | L'échéance est décalée pendant la pause |
 
@@ -160,10 +156,10 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | --- | --- | --- | --- |
 | Générateur externe sans stubs mypy | Élevée | Moyen | `--ignore-missing-imports` dans le lint courant ; isoler l'import dans `maze.py` |
 | JSON absent ou corrompu | Moyenne | Élevé | Valeurs de configuration sûres et lecture de scores tolérante |
-| Deux gestionnaires de highscores différents | Élevée | Élevé | Migrer l'UI vers `pacman/highscores.py` avant livraison |
-| IA trop difficile | Moyenne | Élevé | Modes classiques, cibles distinctes et calibration de la vitesse effective |
-| Collision ressentie comme injuste | Moyenne | Élevé | Ajustement après tests manuels sur plusieurs tailles de maze |
-| Fenêtre trop grande selon l'écran | Moyenne | Moyen | Mise à l'échelle conservant le ratio et marge de 10 % |
+| Régression du highscore | Faible | Élevé | Service Pydantic unique utilisé par le moteur et toute l'UI |
+| IA trop difficile | Faible | Élevé | Modes classiques, fuite BFS et fantômes réellement plus lents |
+| Collision ressentie comme injuste | Faible | Élevé | Distance ramenée à 55 % d'une case et couverte par des tests |
+| Fenêtre trop grande selon l'écran | Faible | Moyen | Format fixe 1000×900 et contenu borné par des tests de mise en page |
 | Maze injouable | Faible | Élevé | Vérification des dimensions, murs, coordonnées et shortest path |
 | Régression lors de l'intégration | Moyenne | Élevé | pytest, flake8, mypy et tests manuels avant fusion |
 | Packaging tardif | Moyenne | Élevé | Réserver un lot dédié avant la remise et tester sur machine propre |
@@ -178,9 +174,9 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | mypy refuse `mazegenerator` | Bibliothèque fournie sans stubs ni `py.typed` | Ignorer uniquement les imports externes non typés dans le lint courant |
 | Highscore absent ou vide | Fichier inexistant ou JSON vide | Retourner une liste vide côté API robuste ; initialiser le fichier avec `[]` |
 | Fantômes absents à l'écran | État moteur non relié au renderer | Ajouter `DisplayGhosts` et charger les sprites correspondants |
-| Fantômes trop rapides/difficiles | Poursuite trop efficace et vitesse entière parfois identique à Pacman | Scatter/chase et cibles individuelles ; correction de l'arrondi encore prévue |
+| Fantômes trop rapides/difficiles | Poursuite trop efficace et vitesse entière parfois identique à Pacman | Scatter/chase, fuite frightened et vitesse entière strictement inférieure |
 | Partie perdue avant de jouer | Collision ou état mal réinitialisé | Réinitialiser Pacman, fantômes et cycle après une vie perdue |
-| Fenêtre mal adaptée | Taille fixe supérieure à l'écran | Calculer une taille proportionnelle à la résolution disponible |
+| Fenêtre mal adaptée | Ancien canevas haut de 1500 pixels | Utiliser un format fixe 1000×900 et recentrer le maze et le HUD |
 | Option perfect incohérente | Possibilité d'activer un mode non souhaité | Retirer l'option et toujours passer `perfect=False` |
 
 ## 10. Plan de tests d'acceptation
@@ -195,11 +191,12 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Victoire et défaite | `tests/test_game_outcome.py` | Couvert |
 | Quatre fantômes et rendu | `tests/test_ghost_display.py` | Couvert |
 | BFS, cibles, modes et collisions | `tests/test_ghosts.py` | Couvert |
-| Lecture, validation et top 10 | `tests/test_highscores.py` | Couvert côté API robuste |
+| Lecture, validation, UI et top 10 | `tests/test_highscores.py` | Couvert |
+| Cheat mode et contrôles | `tests/test_cheats.py` | Couvert |
 | Timer et pause | `tests/test_level_timer.py` | Couvert |
 | Page de génération | `tests/test_maze_generator_page.py` | Couvert |
-| Suite complète | `make test` | À exécuter avant chaque livraison |
-| Style et types | `make lint` | À exécuter avant chaque livraison |
+| Suite complète | `make test` | 86 tests validés le 15 août 2026 |
+| Style et types | `make lint-strict` | flake8 et mypy strict validés le 15 août 2026 |
 
 ### Recette manuelle finale
 
@@ -214,9 +211,10 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Attendre la fin du timer | Défaite propre à zéro seconde | À revalider |
 | Mettre le jeu en pause | Timer et modes fantômes ne progressent pas | À revalider |
 | Générer depuis le menu | Nouveau maze non parfait et partie immédiate | À revalider |
-| Liste contenant 0 à 9 scores | Un nouveau score valide complète la liste jusqu'à dix entrées | À corriger |
+| Liste contenant 0 à 9 scores | Un nouveau score valide complète la liste jusqu'à dix entrées | Couvert automatiquement |
 | JSON de configuration invalide | Warnings lisibles et valeurs sûres | À revalider |
-| Package téléchargé | Le jeu démarre sans environnement de développement | Non réalisé |
+| Package local | Build macOS ARM64 et lancement sans argument | Couvert localement |
+| Package téléchargé | Le jeu démarre depuis la plateforme sans environnement de développement | À faire après upload |
 
 ## 11. Blocages et conflits
 
@@ -245,6 +243,6 @@ Une tâche est terminée lorsque :
   moteur/interface ;
 - le commit ne contient pas de fichiers locaux, temporaires ou secrets.
 
-Le projet complet sera considéré comme livrable uniquement lorsque tous les
-éléments obligatoires restants — cheat mode, highscores UI robustes, packaging,
-test sur machine propre et publication Itch.io — auront été validés.
+Le projet complet sera considéré comme livré lorsque l'archive préparée aura
+été publiée sur Itch.io, téléchargée sur une machine propre et validée par la
+recette manuelle finale.

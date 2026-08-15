@@ -3,13 +3,11 @@
 # Fichier de packaging PyInstaller pour le projet Pacman.
 # Doit rester a la racine du depot (exige par le sujet, chapitre VII).
 #
-# Ce build utilise des fichiers dedies, independants de ceux utilises
-# en dev, pour avoir la main sur la config et les scores livres dans
-# le package sans dependre de config.json ou highscores.json du repo :
+# Ce build utilise une configuration dediee, independante de celle utilisee
+# en developpement, afin de ne pas dependre du config.json du depot :
 #
 #   packaging/config.json  -> devient config.json dans le build
-#   packaging/scores.json  -> devient scores.json dans le build,
-#                              contenu initial : []
+# Les highscores sont crees dans le dossier de donnees de l'utilisateur.
 #
 # Utilisation (depuis la racine du repo) :
 #   rm -rf build dist
@@ -22,7 +20,7 @@
 # la version de PyInstaller, voir pacman/paths.py qui gere ca au runtime) :
 #   find dist/pac-man -name "sprites_sheet.png"
 #   find dist/pac-man -name "config.json"
-#   find dist/pac-man -name "scores.json"
+#   find dist/pac-man -name "README.txt"
 
 from pathlib import Path
 
@@ -43,8 +41,8 @@ datas = [
     # Config dediee au build (pas le config.json de dev)
     (str(PACKAGING_DIR / "config.json"), "."),
 
-    # Fichier de highscores initial, vide, dedie au build
-    (str(PACKAGING_DIR / "scores.json"), "."),
+    # Instructions minimales demandees dans le package livre
+    (str(PACKAGING_DIR / "README.txt"), "."),
 ]
 
 # Verifie que les fichiers dedies au packaging existent bien avant de
@@ -54,7 +52,7 @@ for src, _dst in datas:
     if not Path(src).exists():
         raise FileNotFoundError(
             f"Fichier de packaging manquant : {src}\n"
-            "Verifie que packaging/config.json et packaging/scores.json "
+            "Verifie que packaging/config.json et packaging/README.txt "
             "existent a la racine du repo."
         )
 

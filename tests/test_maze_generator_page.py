@@ -11,6 +11,7 @@ from pacman.constants import (
 )
 from pacman.ui import Ui
 from pacman.ui.pages import GamePage, MenuPage, PagesEnum
+from pacman.ui.pages.game.pause import DisplayPause
 from pacman.ui.pages.maze_generator import MazeGeneratorPage
 from pacman.ui.sprites import SpritesChunker
 
@@ -60,6 +61,37 @@ def test_menu_opens_maze_generator_page(
     stop_page_clock(monkeypatch)
 
     assert page.render() == PagesEnum.MAZE_GENERATOR.value
+
+
+def test_menu_window_close_quits_the_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The window close event must work while the main menu is open."""
+
+    page = MenuPage(screen=make_screen())
+    monkeypatch.setattr(pygame.event, "get", lambda: [
+        pygame.event.Event(pygame.QUIT),
+    ])
+    stop_page_clock(monkeypatch)
+
+    assert page.render() == PagesEnum.QUIT.value
+
+
+def test_pause_window_close_quits_the_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The window close event must work while the game is paused."""
+
+    pause = DisplayPause(screen=make_screen())
+    monkeypatch.setattr(pygame.event, "get", lambda: [
+        pygame.event.Event(pygame.QUIT),
+    ])
+    monkeypatch.setattr(
+        "pacman.ui.pages.game.pause.SimpleClock.tick",
+        lambda self, fps: 0.0,
+    )
+
+    assert pause.render() == PagesEnum.QUIT.value
 
 
 def test_generator_escape_keeps_config(

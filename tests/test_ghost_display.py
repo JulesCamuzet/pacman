@@ -1,6 +1,7 @@
 import pygame
 import pytest
 from pathlib import Path
+from typing import cast
 
 from pacman.config import GameConfig
 from pacman.constants import (
@@ -97,6 +98,32 @@ def test_init_loads_two_frames_for_every_color_and_direction() -> None:
     assert len(renderer.normal_sprites) == 16
     assert all(len(frames) == 2 for frames in renderer.normal_sprites.values())
     assert len(renderer.frightened_sprites) == 2
+
+
+def test_sprite_chunking_does_not_depend_on_subsurface() -> None:
+    """Sprite cropping must use only MLX-equivalent pixel operations."""
+
+    class PixelSheet:
+        def get_at(self, position: tuple[int, int]) -> pygame.Color:
+            return pygame.Color(position[0], position[1], 0, 255)
+
+        def subsurface(self, rect: pygame.Rect) -> pygame.Surface:
+            raise AssertionError("subsurface is not MLX-compatible")
+
+    chunker = SpritesChunker(
+        sheet_path="unused.png",
+        columns_count=2,
+        rows_count=2,
+        columns_width=2,
+        rows_height=2,
+    )
+    chunker.sheet = cast(pygame.Surface, PixelSheet())
+
+    result = chunker.get_chunk([(1, 0), (1, 0)])
+
+    assert result.get_size() == (2, 2)
+    assert result.get_at((0, 0)) == pygame.Color(2, 0, 0, 255)
+    assert result.get_at((1, 1)) == pygame.Color(3, 1, 0, 255)
 
 
 def test_display_uses_ghost_direction_and_animation_frame() -> None:
@@ -201,10 +228,14 @@ def test_game_page_opens_game_over_after_last_life(
         [],
         [pygame.event.Event(
             pygame.KEYDOWN,
+            key=pygame.K_a,
+            unicode="A",
+        )],
+        [pygame.event.Event(
+            pygame.KEYDOWN,
             key=pygame.K_RETURN,
             unicode="\r",
         )],
-        [pygame.event.Event(pygame.QUIT)],
     ])
     monkeypatch.setattr(pygame.event, "get", lambda: next(event_batches))
     monkeypatch.setattr(

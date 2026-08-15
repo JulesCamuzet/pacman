@@ -1,47 +1,36 @@
 ## MiniLibX / pygame function mapping
 
-This project uses `pygame` as a graphical library. Per the subject constraint
-("A graphical library is considered *similar to MLX* if each function you use
-has an equivalent in the MLX library"), the table below lists every pygame
-function used in this project and its conceptual MiniLibX equivalent.
+The project uses only Pygame operations that have a MiniLibX equivalent or
+perform ordinary coordinate calculations. Sprite cropping, resizing, walls,
+circles, and pacgums are implemented pixel by pixel instead of relying on
+higher-level Pygame drawing or transform helpers.
 
-| MiniLibX function | pygame equivalent | Purpose |
-|---|---|---|
-| `mlx_init()` | `pygame.init()` | Initialize the connection / library |
-| `mlx_new_window(mlx_ptr, size_x, size_y, title)` | `pygame.display.set_mode((w, h))` + `pygame.display.set_caption(title)` | Create the window |
-| `mlx_clear_window(mlx_ptr, win_ptr)` | `screen.fill((0, 0, 0))` | Clear the window (black) |
-| `mlx_destroy_window(mlx_ptr, win_ptr)` | `pygame.display.quit()` / `pygame.quit()` | Destroy the window |
-| `mlx_new_image(mlx_ptr, width, height)` | `pygame.Surface((w, h), pygame.SRCALPHA)` | Create a blank image in memory |
-| `mlx_get_data_addr(img_ptr, &bpp, &size_line, &endian)` | `pygame.PixelArray(surface)` / `pygame.surfarray.pixels3d(surface)` | Direct pixel buffer access |
-| `mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, x, y)` | `screen.blit(image, (x, y))` | Draw an image into the window |
-| `mlx_get_color_value(mlx_ptr, color)` | RGB tuple `(r, g, b)` used directly | Color encoding |
-| `mlx_xpm_to_image(mlx_ptr, xpm_data, &w, &h)` | `pygame.image.load(io.BytesIO(data))` | Load an image from in-memory data |
-| `mlx_xpm_file_to_image(mlx_ptr, filename, &w, &h)` | `pygame.image.load(filename)` | Load an image from a file |
-| `mlx_destroy_image(mlx_ptr, img_ptr)` | *(no strict equivalent — Python garbage-collects the Surface)* | Free image memory |
-| `mlx_pixel_put(mlx_ptr, win_ptr, x, y, color)` | `screen.set_at((x, y), color)` | Draw a single pixel |
-| `mlx_string_put(mlx_ptr, win_ptr, x, y, color, string)` | `font.render(string, True, color)` then `screen.blit(text_surface, (x, y))` | Draw text |
-| `mlx_loop(mlx_ptr)` | `while running: ...` | Main event loop |
-| `mlx_key_hook(win_ptr, funct_ptr, param)` | `for event in pygame.event.get(): if event.type == pygame.KEYDOWN` | Key press callback |
-| `mlx_mouse_hook(win_ptr, funct_ptr, param)` | `for event in pygame.event.get(): if event.type == pygame.MOUSEBUTTONDOWN` | Mouse click callback |
-| `mlx_expose_hook(win_ptr, funct_ptr, param)` | *(not required — pygame redraws the whole frame every loop iteration)* | Window redraw callback |
-| `mlx_loop_hook(mlx_ptr, funct_ptr, param)` | Body of the `while running:` loop, executed every iteration before `pygame.display.flip()` | Idle callback |
-| `mlx_hook(win_ptr, event, mask, funct_ptr, param)` | `pygame.event.get()` (generic access to all events) | Low-level generic event hook |
-| *(no direct MLX equivalent — manual buffer offset in C)* | `Surface.subsurface(rect)` | Crop a single sprite out of a spritesheet by extracting a sub-region view of an already-loaded image buffer, equivalent to a manual offset into the buffer returned by `mlx_get_data_addr()` in C |
-| `mlx_put_image_to_window(mlx_ptr, win_ptr, img_ptr, x, y)` | `screen.blit(image, (x, y), area)` | Draw only a sub-region (`area`) of a source image into the window — same call as above, with an extra parameter restricting the copied zone |
+| MiniLibX function or mechanism | Pygame equivalent used | Purpose |
+| --- | --- | --- |
+| `mlx_init()` | `pygame.init()` and `pygame.font.init()` | Initialize the graphical services |
+| `mlx_new_window()` | `pygame.display.set_mode()` and `pygame.display.set_caption()` | Create the fixed 1000×900 window |
+| `mlx_clear_window()` | `Surface.fill()` | Clear the current frame |
+| `mlx_destroy_window()` | `pygame.quit()` | Release the graphical resources |
+| `mlx_new_image()` | `pygame.Surface()` | Create an image buffer |
+| `mlx_get_data_addr()` / buffer access | `Surface.get_at()` and `Surface.set_at()` | Read and write individual pixels |
+| `mlx_put_image_to_window()` | `Surface.blit()` | Copy an image to the window |
+| `mlx_pixel_put()` | `Surface.set_at()` | Draw walls, circles, dots, and resized sprites pixel by pixel |
+| `mlx_xpm_file_to_image()` | `pygame.image.load()` | Load the supplied sprite sheet |
+| `mlx_string_put()` | `pygame.font.Font().render()` followed by `Surface.blit()` | Draw the bundled game font |
+| `mlx_loop()` / expose refresh | Main `while` loops and `pygame.display.flip()` | Process and present frames |
+| `mlx_key_hook()` | `pygame.event.get()` with `KEYDOWN` and key constants | Read menu, movement, pause, and cheat keys |
+| `mlx_hook()` for window close | `pygame.event.get()` with `QUIT` | Close from every active page or modal |
+| Manual frame timing in a loop hook | `SimpleClock` using `time.perf_counter()` and `time.sleep()` | Limit the game to 60 FPS |
 
-### Notes
+Geometry helpers such as `Surface.get_size()`, `get_width()`, `get_height()`,
+and `get_rect(center=...)` only calculate sizes or coordinates. They do not add
+a graphical primitive beyond the image and text operations mapped above.
 
-- **Text centering**: `Surface.get_rect(center=...)` and `Surface.get_width()`
-  have no direct MLX equivalent, but they only compute coordinates — they draw
-  nothing. The actual drawing call remains `blit()`, the equivalent of
-  `mlx_put_image_to_window` / `mlx_string_put`.
-- **FPS handling**: `pygame.time.Clock().tick(fps)` was deliberately **not**
-  used, since it has no MLX equivalent (MLX has no built-in FPS limiter — this
-  would be handled manually in a `loop_hook` in C). Instead, FPS limiting is
-  reimplemented manually using `time.perf_counter()` and `time.sleep()`,
-  standard OS-level primitives equivalent to what a C developer would use
-  (e.g. `gettimeofday()` / `usleep()`).
-- **Image formats**: MLX only natively supports XPM. `pygame.image.load()`
-  supports more formats (PNG, JPG, BMP, GIF...) — a functional superset of
-  `mlx_xpm_file_to_image()`, used here for convenience while keeping the same
-  conceptual role (load an image file into memory).
+`SpritesChunker` copies sprite-sheet pixels into a new `Surface`; it does not
+use `Surface.subsurface()`. `DrawTools.resize_surface()` performs nearest-
+neighbor scaling with `get_at()` and `set_at()` and does not use
+`pygame.transform.scale()`.
+
+Pygame loads the supplied PNG sprite sheet, whereas classic MiniLibX loads XPM
+files. Both calls have the same project role: decoding one bundled image into
+an image buffer before the loop starts.

@@ -66,15 +66,15 @@ class SpritesChunker(BaseModel):
                 (position[1][1] + 1) * self.rows_height
             )
         ]
-        width = (float(crop_coords_pixels[1][0])
-                 - float(crop_coords_pixels[0][0]))
-        height = (float(crop_coords_pixels[1][1])
-                  - float(crop_coords_pixels[0][1]))
-        sprite_rect = pygame.Rect(
-            float(crop_coords_pixels[0][0]),
-            float(crop_coords_pixels[0][1]),
-            width,
-            height
-        )
-        cropped = self.sheet.subsurface(sprite_rect)
+        start_x, start_y = crop_coords_pixels[0]
+        end_x, end_y = crop_coords_pixels[1]
+        width = end_x - start_x
+        height = end_y - start_y
+        cropped = pygame.Surface((width, height), pygame.SRCALPHA)
+        for y in range(height):
+            for x in range(width):
+                cropped.set_at(
+                    (x, y),
+                    self.sheet.get_at((start_x + x, start_y + y)),
+                )
         return cropped

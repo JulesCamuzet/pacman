@@ -205,17 +205,34 @@ class Ghost(BaseModel):
             self.x // state.square_width,
             self.y // state.square_width,
         )
+        if self.mode == GhostMode.FRIGHTENED:
+            choices = self.__legal_choices(state, ghost_cell)
+            distances = self.__distance_map(
+                state,
+                self.get_pacman_cell(state),
+            )
+            reachable = [
+                (distances[cell], direction)
+                for cell, direction in choices
+                if cell in distances
+            ]
+            if not reachable:
+                return None
+            return max(reachable, key=lambda choice: choice[0])[1]
+
         if self.mode == GhostMode.GOING_HOME:
             target_cell = (
                 self.start_x // state.square_width,
                 self.start_y // state.square_width,
             )
+            choices = self.get_neighbors(state, ghost_cell)
         else:
-            target_cell = (
-                state.pacman.x // state.square_width,
-                state.pacman.y // state.square_width,
+            target_cell = self.__get_reachable_target(
+                state,
+                ghost_cell,
+                self.get_target(state),
             )
-        choices = self.get_neighbors(state, ghost_cell)
+            choices = self.__legal_choices(state, ghost_cell)
         distances = self.__distance_map(state, target_cell)
         reachable = [
             (distances[cell], direction)

@@ -11,13 +11,26 @@ from pydantic import (
 )
 
 
+MIN_MAZE_DIMENSION = 3
+MAX_MAZE_DIMENSION = 50
+MIN_LEVEL_COUNT = 10
+
+
 class LevelConfig(BaseModel):
     """Configuration used to generate one level."""
 
     model_config = ConfigDict(strict=True, extra="ignore")
 
-    width: int = Field(default=21, gt=1)
-    height: int = Field(default=21, gt=1)
+    width: int = Field(
+        default=21,
+        ge=MIN_MAZE_DIMENSION,
+        le=MAX_MAZE_DIMENSION,
+    )
+    height: int = Field(
+        default=21,
+        ge=MIN_MAZE_DIMENSION,
+        le=MAX_MAZE_DIMENSION,
+    )
     seed: int = Field(default=42, ge=0)
 
 
@@ -43,7 +56,7 @@ class GameConfig(BaseModel):
         min_length=1,
     )
     lives: int = Field(default=3, gt=0)
-    pacgum: int = Field(default=42, ge=0)
+    pacgum: int = Field(default=20_000, ge=0)
     points_per_pacgum: int = Field(default=10, ge=0)
     points_per_super_pacgum: int = Field(default=50, ge=0)
     points_per_ghost: int = Field(default=200, ge=0)
@@ -62,11 +75,16 @@ def _safe_int(
     key: str,
     default: int,
     minimum: int,
+    maximum: int | None = None,
 ) -> int:
     """Read a bounded integer or return its safe default."""
 
     value = data.get(key)
-    if type(value) is not int or value < minimum:
+    if (
+        type(value) is not int
+        or value < minimum
+        or (maximum is not None and value > maximum)
+    ):
         _warning(f"'{key}' is invalid or missing; using {default}.")
         return default
     return value
@@ -115,8 +133,20 @@ def _normalize_level(
         }
 
     return {
-        "width": _safe_int(raw_level, "width", 21, 2),
-        "height": _safe_int(raw_level, "height", 21, 2),
+        "width": _safe_int(
+            raw_level,
+            "width",
+            21,
+            MIN_MAZE_DIMENSION,
+            MAX_MAZE_DIMENSION,
+        ),
+        "height": _safe_int(
+            raw_level,
+            "height",
+            21,
+            MIN_MAZE_DIMENSION,
+            MAX_MAZE_DIMENSION,
+        ),
         "seed": _safe_int(raw_level, "seed", default_seed, 0),
     }
 
@@ -137,10 +167,24 @@ def _normalize_levels(
             }
             for index in range(10)
         ]
-    return [
+    levels = [
         _normalize_level(raw_level, index)
         for index, raw_level in enumerate(raw_levels)
     ]
+    if len(levels) < MIN_LEVEL_COUNT:
+        _warning(
+            f"at least {MIN_LEVEL_COUNT} levels are required; "
+            "adding random default levels."
+        )
+        levels.extend(
+            {
+                "width": 21,
+                "height": 21,
+                "seed": 0,
+            }
+            for _ in range(MIN_LEVEL_COUNT - len(levels))
+        )
+    return levels
 
 
 def _normalize_config(data: dict[str, object]) -> dict[str, object]:
@@ -150,7 +194,7 @@ def _normalize_config(data: dict[str, object]) -> dict[str, object]:
         "levels": _normalize_levels(data),
         "highscore_filename": _safe_filename(data),
         "lives": _safe_int(data, "lives", 3, 1),
-        "pacgum": _safe_int(data, "pacgum", 42, 0),
+        "pacgum": _safe_int(data, "pacgum", 20_000, 0),
         "points_per_pacgum": _safe_int(
             data, "points_per_pacgum", 10, 0
         ),

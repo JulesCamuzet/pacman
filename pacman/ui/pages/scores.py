@@ -1,4 +1,5 @@
 import pygame
+from pydantic import Field
 
 from pacman.ui.pages import PagesEnum, Page
 from pacman.constants import (
@@ -8,9 +9,9 @@ from pacman.constants import (
     FONT_SIZE_TITLE
 )
 from pacman.tick import SimpleClock
-from pacman.types import ScoreType
 from pacman.config import GameConfig
-from pacman.scores import HighscoresManager
+from pacman.highscores import HighscoreEntry, load_highscores
+from pacman.paths import get_highscores_path
 from pacman.tools.draw import DrawTools
 
 
@@ -24,7 +25,7 @@ class ScoresPage(Page):
 
     id: PagesEnum = PagesEnum.SCORES
     title: str = "Scores"
-    scores: list[ScoreType] = []
+    scores: list[HighscoreEntry] = Field(default_factory=list)
     back_text: str = "Back"
     config: GameConfig
 
@@ -41,7 +42,7 @@ class ScoresPage(Page):
         index = 0
         for score in self.scores:
             rank = index + 1
-            text = f"{rank} - {score["name"]}: {score["score"]}"
+            text = f"{rank} - {score.name}: {score.score}"
             DrawTools.display_text(
                 screen=self.screen,
                 text=text,
@@ -60,12 +61,9 @@ class ScoresPage(Page):
 
         clock = SimpleClock()
         running = True
-        highscores_manager = HighscoresManager(config=self.config)
-        self.scores = highscores_manager.get_highscores()
-        if self.scores is None:
-            raise Exception(
-                "Scores data not found."
-            )
+        self.scores = load_highscores(
+            get_highscores_path(self.config.highscore_filename)
+        )
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:

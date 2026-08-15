@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+import os
 import pygame
 
 from pacman.ui.pages import (
@@ -43,25 +44,30 @@ class Ui(BaseModel):
         Init the UI.
         """
 
+        os.environ.setdefault("SDL_VIDEO_CENTERED", "1")
         pygame.init()
-        screen = pygame.display.set_mode(
-            size=(WINDOW_WIDTH, WINDOW_HEIGHT)
-        )
-        self.screen = screen
-        pygame.display.set_caption(WINDOW_TITLE)
-        pygame.font.init()
-
-        self.__load_sprites()
-
-        if self.sprites_chunker is None:
-            raise Exception(
-                "Sprites chunker not found."
+        try:
+            screen = pygame.display.set_mode(
+                size=(WINDOW_WIDTH, WINDOW_HEIGHT)
             )
+            self.screen = screen
+            pygame.display.set_caption(WINDOW_TITLE)
+            pygame.font.init()
 
-        self.current_page = WelcomePage(
-            screen=self.screen,
-            sprites_chunker=self.sprites_chunker
-        )
+            self.__load_sprites()
+
+            if self.sprites_chunker is None:
+                raise Exception(
+                    "Sprites chunker not found."
+                )
+
+            self.current_page = WelcomePage(
+                screen=self.screen,
+                sprites_chunker=self.sprites_chunker
+            )
+        except Exception:
+            pygame.quit()
+            raise
 
     def __load_sprites(self) -> None:
         """
@@ -94,6 +100,21 @@ class Ui(BaseModel):
             raise Exception(
                 "Init Ui before running it."
             )
+
+        try:
+            return self.__run_pages()
+        finally:
+            pygame.quit()
+
+    def __run_pages(self) -> int:
+        """Process page transitions until the application exits."""
+
+        if (
+            self.current_page is None
+            or self.screen is None
+            or self.sprites_chunker is None
+        ):
+            raise Exception("Init Ui before running it.")
 
         clock = SimpleClock()
         running = True

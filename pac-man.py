@@ -4,12 +4,15 @@ from pathlib import Path
 import sys
 
 from pacman.app import AppMain
+from pacman.paths import get_default_config_path
 
 
 def main(arguments: list[str] | None = None) -> int:
     """Validate command-line arguments and prepare the game."""
 
     args = sys.argv[1:] if arguments is None else arguments
+    if not args and getattr(sys, "frozen", False):
+        return 0 if AppMain(get_default_config_path()).run() else 1
     if len(args) != 1:
         print("Usage: python3 pac-man.py config.json")
         return 1

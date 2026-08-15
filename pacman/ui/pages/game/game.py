@@ -34,7 +34,7 @@ class GamePage(Page):
     pause: bool = False
     game_state: GameState | None = None
 
-    def __handle_keypress(self, event: pygame.event.Event) -> None:
+    def handle_keypress(self, event: pygame.event.Event) -> None:
         """
         Handle the user keypress.
         """
@@ -62,10 +62,26 @@ class GamePage(Page):
             self.game_state.pacman.next_direction = (
                 Direction.DOWN
             )
-        if event.key == pygame.K_d:
-            self.game_state.pacman.is_dying = True
+        if not self.config.cheat_mode:
+            return
+        if event.key == pygame.K_i:
+            self.game_state.toggle_invincibility()
+        elif event.key == pygame.K_f:
+            self.game_state.toggle_ghost_freeze()
+        elif event.key in (
+            pygame.K_EQUALS,
+            pygame.K_PLUS,
+            pygame.K_KP_PLUS,
+        ):
+            self.game_state.add_cheat_life()
+        elif event.key == pygame.K_s:
+            self.game_state.toggle_speed_boost()
+        elif event.key == pygame.K_l:
+            self.game_state.skip_level()
 
     def render(self) -> int:
+        """Run one complete game until victory, defeat, or menu exit."""
+
         clock = SimpleClock()
         running = True
 
@@ -104,7 +120,7 @@ class GamePage(Page):
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    self.__handle_keypress(event)
+                    self.handle_keypress(event)
                 if event.type == pygame.QUIT:
                     return PagesEnum.QUIT.value
             self.screen.fill((0, 0, 0))
@@ -115,14 +131,15 @@ class GamePage(Page):
                 self.game_state.pause_timer(
                     time.perf_counter() - pause_started_at
                 )
-                if res == 0:
+                if res == PagesEnum.GAME.value:
                     self.pause = False
                 else:
-                    return PagesEnum.MENU.value
+                    return res
             update_result = self.game_state.update()
             if update_result == UpdateResult.LOSE:
                 highscore_modal_renderer.outcome = GameOutcome.DEFEAT
-                highscore_modal_renderer.display_modal()
+                if not highscore_modal_renderer.display_modal():
+                    return PagesEnum.QUIT.value
                 return PagesEnum.MENU.value
             maze_displayer.display_maze()
             ghosts_displayer.display_ghosts()
@@ -130,10 +147,12 @@ class GamePage(Page):
             dashboard_displayer.display_dashboard(self.game_state)
             if (len(self.game_state.super_pacgums) == 0
                     and len(self.game_state.pacgums) == 0):
-                next_lvl_modal_displayer.display_modal()
+                if not next_lvl_modal_displayer.display_modal():
+                    return PagesEnum.QUIT.value
                 if self.game_state.next_level() == 1:
                     highscore_modal_renderer.outcome = GameOutcome.VICTORY
-                    highscore_modal_renderer.display_modal()
+                    if not highscore_modal_renderer.display_modal():
+                        return PagesEnum.QUIT.value
                     return PagesEnum.MENU.value
             clock.tick(FPS)
             pygame.display.flip()

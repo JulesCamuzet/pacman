@@ -6,9 +6,8 @@
 
 Pacman is a Python 3.13 game rendered with Pygame. Each level is built from a
 JSON configuration and generated at runtime with the maze generator supplied
-for the project. Pydantic models validate the configuration, maze, and game
-entities. A separate validated highscore service exists, but its final Pygame
-integration is still listed as remaining work.
+for the project. Pydantic models validate the configuration, maze, game
+entities, and highscores before the UI consumes them.
 
 The current game includes:
 
@@ -18,12 +17,14 @@ The current game includes:
 - Pacman movement, animation, pacgums, super-pacgums, score, and lives;
 - four visible ghosts with shared BFS pathfinding and different targets;
 - scatter, chase, frightened, and eaten ghost modes;
+- evaluator cheats for invincibility, level skip, ghost freeze, extra lives,
+  and Pacman speed;
 - pause, life loss, game over, and a separate final victory screen;
-- a window that preserves the original layout ratio while fitting the screen.
+- a centered 1000×900 game window;
+- a standalone PyInstaller build specification.
 
-The repository is playable, but the items listed in
-[Remaining work](#remaining-work-before-submission) must still be completed
-before it can be considered a final subject-compliant release.
+The remaining external release step is documented in
+[Release validation](#release-validation).
 
 ## Instructions
 
@@ -75,6 +76,11 @@ make run CONFIG=path/to/another-config.json
 | Menus | `Enter` | Confirm selection |
 | Game | Arrow keys | Move Pacman |
 | Game | `Escape` | Pause |
+| Cheat mode | `I` | Toggle invincibility |
+| Cheat mode | `F` | Freeze or release ghosts |
+| Cheat mode | `L` | Complete the current level |
+| Cheat mode | `+` | Add one life |
+| Cheat mode | `S` | Toggle double Pacman speed |
 | Secondary page | `Escape` | Return to the previous menu |
 | Highscore entry | Letters, numbers, space | Enter a name |
 | Highscore entry | `Backspace` | Remove the last character |
@@ -87,10 +93,9 @@ make test
 make lint
 ```
 
-`make test` runs the pytest suite. `make lint` runs flake8 and mypy while
-ignoring missing type information from external libraries. The stricter
-`make lint-strict` target may reject the supplied `mazegenerator` package
-because that package does not publish type stubs or a `py.typed` marker.
+`make test` runs the pytest suite. `make lint` runs the exact flake8 and mypy
+checks requested by the subject. `make lint-strict` also passes by limiting
+the missing-stub exception to the supplied `mazegenerator` package.
 
 Useful maintenance targets are `make clean`, `make fclean`, and `make re`.
 
@@ -109,8 +114,10 @@ before parsing the JSON.
   "points_per_super_pacgum": 50,
   "points_per_ghost": 200,
   "level_max_time": 90,
+  "cheat_mode": true,
   "levels": [
-    {"width": 14, "height": 18, "seed": 42}
+    {"width": 14, "height": 18, "seed": 42},
+    {"width": 14, "height": 18, "seed": 0}
   ]
 }
 ```
@@ -119,18 +126,20 @@ before parsing the JSON.
 | --- | --- | --- | --- |
 | `highscore_filename` | Non-empty string | `highscores.json` | Score file location |
 | `lives` | Integer greater than 0 | `3` | Starting lives |
-| `pacgum` | Integer greater than or equal to 0 | `42` | Requested normal pacgums |
+| `pacgum` | Integer greater than or equal to 0 | `20000` | Requested normal pacgums |
 | `points_per_pacgum` | Non-negative integer | `10` | Normal pacgum value |
 | `points_per_super_pacgum` | Non-negative integer | `50` | Super-pacgum value |
 | `points_per_ghost` | Non-negative integer | `200` | Edible ghost value |
 | `level_max_time` | Integer greater than 0 | `90` | Seconds allowed per level |
-| `levels` | Non-empty list | 10 generated levels | Level sequence |
-| `width`, `height` | Integer greater than 1 | `21` | Maze dimensions |
+| `cheat_mode` | Boolean | `false` | Enable evaluator controls |
+| `levels` | List padded to at least 10 | 10 generated levels | Level sequence |
+| `width`, `height` | Integer from 3 to 50 | `21` | Maze dimensions |
 | `seed` | Non-negative integer | First `42`, then `0` | Reproducible or random maze |
 
-The shipped configuration requests `20000` pacgums so every available maze
-cell is filled; placement stops safely when no valid cell remains. This differs
-from the code fallback of `42`.
+The shipped configuration and safe fallback request `20000` pacgums so every
+available maze cell is filled; placement stops when no valid cell remains.
+Level one uses seed `42`; every later level uses seed `0`, which asks the
+assigned package for a new random maze.
 
 If a supported value is missing or invalid, the loader prints a warning and
 uses its safe default. Unknown configuration keys are ignored. If the whole
@@ -147,7 +156,7 @@ Scores are stored as a JSON list:
 ]
 ```
 
-The validated highscore service in `pacman/highscores.py`:
+The UI and the validated service in `pacman/highscores.py`:
 
 - accepts names from 1 to 10 characters;
 - accepts only letters, numbers, and spaces;
@@ -158,12 +167,10 @@ The validated highscore service in `pacman/highscores.py`:
 - ignores individual invalid entries instead of crashing the game.
 
 Keeping only ten scores makes the ranking predictable and prevents the data
-file from growing without limit. The Pygame score pages still use the older
-`pacman/scores.py` manager. Its insertion algorithm preserves the current list
-size, cannot add the first entry to an empty list, cannot grow a partial list
-toward ten entries, and ignores a new score that does not beat an existing
-entry. Migrating these pages to the validated service is therefore tracked as
-remaining work.
+file from growing without limit. Empty and partial rankings accept new
+entries, then the service sorts and truncates the result. In a packaged build,
+scores are written to the current user's application-data directory so updates
+do not erase them.
 
 Initialize a new score file with a valid empty JSON list:
 
@@ -227,11 +234,10 @@ a different chase target:
 - **Orange** chases when far away and returns to its corner when close.
 
 The group alternates between scatter and chase periods. A super-pacgum switches
-active ghosts to frightened mode, where they choose a random legal direction.
-An eaten ghost waits before respawning. `GHOST_SPEED_RATIO` is configured to
-`0.75` in `pacman/constants.py`. Movement speeds are stored as whole pixels per
-frame, so rounding can currently make Pacman and the ghosts both move at one
-pixel per frame on small cells; final speed tuning remains necessary.
+active ghosts to frightened mode, where BFS selects the legal direction that
+increases their distance from Pacman. An eaten ghost waits five seconds before
+respawning in its corner. `GHOST_SPEED_RATIO` is configured to `0.75`, with a
+final integer-speed guard that always keeps ghosts slower than Pacman.
 
 ### Level outcome
 
@@ -303,21 +309,28 @@ acceptance plan, and current blockers are recorded in the
 - The `mazegenerator` wheel and project subject supplied by 42
 - [`MLX_MAPPING.md`](MLX_MAPPING.md) for the required Pygame/MiniLibX mapping
 
-AI assistance was used to help structure the project plan, explain JSON and
-Pydantic concepts, diagnose Git and mypy errors, propose and review the ghost
-AI, draft tests, and prepare documentation. The team reviewed, adapted, ran,
-and tested the resulting code and remains responsible for every submitted
-part.
+AI assistance was used to structure the project plan, explain JSON and
+Pydantic concepts, diagnose Git and mypy errors, draft parts of the ghost AI,
+cheat controls, tests, packaging, and documentation, and perform the final
+subject audit. The team reviewed, adapted, ran, and tested the resulting code
+and remains responsible for every submitted part.
 
-## Remaining Work Before Submission
+## Packaging
 
-- implement and document the mandatory cheat mode;
-- connect every Pygame score screen to `pacman/highscores.py`, allow an empty or
-  partial leaderboard to grow to ten entries, and then retain only the top ten;
-- make the configured ghost speed ratio effective even when movement speed
-  would otherwise round to one pixel per frame;
-- complete manual playtests and tune the Pacman/ghost collision distance;
-- verify final error handling and audiovisual transitions between levels;
-- prepare the required platform packages and test them on clean machines;
-- publish the playable build on Itch.io;
-- perform the final subject and `MLX_MAPPING.md` compliance review.
+Build the standalone application with:
+
+```bash
+make package
+```
+
+The result is written to `dist/pac-man/`. The packaged executable loads its
+bundled configuration without a command-line argument, stores highscores in
+the current user's application-data directory, and includes `README.txt` with
+the controls. Zip the complete `dist/pac-man/` directory for distribution.
+
+## Release Validation
+
+The source, automated checks, and macOS ARM64 package are prepared locally.
+Before the final defense, upload the complete archive as a free unlisted build
+on Itch.io (or another gaming platform), download it on a clean machine, and
+complete one manual victory and defeat scenario from that downloaded build.

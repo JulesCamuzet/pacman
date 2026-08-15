@@ -32,6 +32,10 @@ class InstructionsPage(Page):
             "Arrow keys - Move Pacman",
             "Escape - Pause",
             "",
+            "Cheats (when enabled in config):",
+            "I - Invincibility | F - Freeze ghosts",
+            "L - Skip level | + - Add life | S - Speed boost",
+            "",
             "Rules:",
             f"Eat all pacgums to complete a level (+"
             f"{self.config.points_per_pacgum} pts each)",

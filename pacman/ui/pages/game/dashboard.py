@@ -55,3 +55,16 @@ class DisplayDashboard(BaseModel):
             f"Time: {state.remaining_time}s",
             start_y + 150
         )
+        if state.config.cheat_mode:
+            active: list[str] = []
+            if state.cheat_invincible:
+                active.append("INVINCIBLE")
+            if state.cheat_ghosts_frozen:
+                active.append("GHOSTS FROZEN")
+            if state.cheat_speed_boost:
+                active.append("SPEED x2")
+            status = " | ".join(active) if active else "READY"
+            self.__display_info(
+                f"Cheats: {status}",
+                start_y + 200,
+            )
