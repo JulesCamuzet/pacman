@@ -1,12 +1,12 @@
 # Project management — Pacman
 
-Dernière mise à jour : 15 août 2026
+Dernière mise à jour : 19 août 2026
 Équipe : **Alexis Lasserre (`allasser`)** et **Jules Camuzet (`jcamuzet`)**
 
 Ce document rassemble les preuves de gestion du projet : organisation de
 l'équipe, planning prévu et réel, décisions techniques, risques, problèmes,
-tests d'acceptation et travail restant. Il décrit l'état réel du dépôt et doit
-être mis à jour jusqu'à la livraison.
+recette d'acceptation et travail restant. Il décrit l'état réel du dépôt et
+doit être mis à jour jusqu'à la livraison.
 
 ## 1. Objectif et contraintes du sujet
 
@@ -29,6 +29,11 @@ Contraintes suivies par l'équipe :
 - cheat mode et packaging local terminés ; déploiement Itch.io à effectuer
   avant la remise finale.
 
+Le sujet indique explicitement que les programmes de test ne sont ni rendus ni
+notés. L'équipe a donc retiré la suite automatisée du dépôt livré et s'appuie
+sur le lint imposé, sur les vérifications `config-check` et `maze-check`, puis
+sur une recette manuelle documentée.
+
 ## 2. Organisation de l'équipe
 
 | Domaine | Responsable principal | Travail réalisé |
@@ -41,7 +46,7 @@ Contraintes suivies par l'équipe :
 | Pacman et rendu du jeu | Jules | Affichage du maze, rails, Pacman, mouvements, animation, HUD et pause |
 | Fantômes et intelligence artificielle | Alexis | Quatre fantômes, BFS, cibles propres, modes et collisions |
 | Progression de partie | Partagé | Niveaux, score, vies, timer, victoire, défaite et intégration UI/moteur |
-| Stabilisation finale | Alexis + Jules | Tests manuels, correction des derniers bugs et préparation de la remise |
+| Stabilisation finale | Alexis + Jules | Recette manuelle, correction des derniers bugs et préparation de la remise |
 
 Cette répartition garde une frontière simple : Alexis produit et valide les
 données et les règles de jeu ; Jules transforme cet état en interface Pygame.
@@ -53,13 +58,14 @@ Les changements qui touchent les deux couches sont vérifiés ensemble.
 - Chaque fonctionnalité importante est développée sur une branche dédiée,
   puis intégrée après vérification.
 - Les commits servent de journal technique et restent limités à un objectif.
-- Avant une intégration, l'auteur exécute les tests et le lint disponibles.
+- Avant une intégration, l'auteur exécute `make lint` puis rejoue à la main le
+  scénario concerné.
 - Les contrats partagés (`GameConfig`, `MazeData`, `GameState`) sont discutés
   avant de modifier l'interface ou le moteur.
 - Une décision simple est prise par le responsable du domaine. Une décision
   qui affecte les deux parties est validée par Alexis et Jules.
-- Un bug bloquant est reproduit, isolé, corrigé puis couvert par un test quand
-  cela est raisonnable.
+- Un bug bloquant est reproduit, isolé, corrigé puis rejoué manuellement, et
+  son scénario est ajouté à la recette du point 10 quand il risque de revenir.
 - Les derniers bugs d'intégration sont traités en binôme afin de contrôler à
   la fois le comportement du moteur et son rendu.
 
@@ -76,8 +82,9 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | 28 juillet–1 août | Première version jouable | UI, maze, Pacman, menus, HUD, pause et niveaux réalisés par Jules | Conforme, intégration progressive |
 | 2–7 août | Fantômes et stabilisation | Phase décalée : analyse et préparation avant implémentation | Retard sur les fantômes |
 | 8–10 août | IA et intégration | BFS, quatre fantômes, collisions, rendu et menu de génération par Alexis | Retard rattrapé |
-| 11–13 août | Finition fonctionnelle | maze non parfait, IA équilibrée, timer, victoire et tests d'application | Conforme au planning révisé |
-| 15 août | Conformité | Cheat mode, highscores UI, IA, configuration, tests et package macOS ARM64 | Réalisé |
+| 11–13 août | Finition fonctionnelle | maze non parfait, IA équilibrée, timer, victoire et recette applicative | Conforme au planning révisé |
+| 15 août | Conformité | Cheat mode, highscores UI, IA, configuration et package macOS ARM64 | Réalisé |
+| 19 août | Nettoyage de la remise | Retrait de la suite de test non notée et mise à jour du Makefile et de la documentation | Réalisé |
 | Avant remise | Livraison | Upload Itch.io et test du téléchargement sur une machine propre | À terminer |
 
 ## 5. Journal de progression
@@ -94,6 +101,7 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | 10 août | Jules | Ajustement de la fenêtre et des tailles de police |
 | 12 août | Alexis | maze toujours non parfait, IA classique, timer et victoire distincte |
 | 13 août | Alexis | Documentation finale et audit des exigences restantes |
+| 19 août | Équipe | Dépôt réduit aux livrables du sujet et Makefile aligné |
 
 ## 6. Kanban actuel
 
@@ -117,16 +125,17 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 - [x] Séparer victoire finale et défaite.
 - [x] Forcer la génération de labyrinthes non parfaits.
 - [x] Ajouter une page de génération qui lance directement la partie.
-- [x] Ajouter des tests automatisés pour les règles principales.
 - [x] Ajouter et documenter le cheat mode d'évaluation.
 - [x] Relier toute l'interface au service Pydantic des highscores.
 - [x] Permettre à une liste vide ou partielle d'atteindre dix scores.
 - [x] Garantir une vitesse effective des fantômes inférieure à Pacman.
 - [x] Préparer et lancer le package PyInstaller macOS ARM64.
+- [x] Retirer les programmes de test non demandés et réaligner le Makefile
+  sur les seules cibles exigées.
 
 ### En cours
 
-- [ ] Tester manuellement une partie complète sur les machines cibles.
+- [ ] Dérouler la recette manuelle complète sur les machines cibles.
 - [ ] Ajuster la zone de collision Pacman/fantôme après test de jouabilité.
 - [ ] Télécharger le futur package publié et jouer une partie complète sur
   une machine propre.
@@ -151,6 +160,7 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Ratio fantôme configuré à 75 % | La première version était trop difficile | Arrondi borné pour garder au moins un pixel/frame d'écart avec Pacman |
 | Page Generate en une action | Garder une interface simple | Un seed aléatoire est créé puis le jeu démarre |
 | Timer basé sur une échéance | Éviter les dérives et gérer la pause | L'échéance est décalée pendant la pause |
+| Dépôt limité aux livrables du sujet | Les programmes de test ne sont ni rendus ni notés | Contrôle qualité assuré par le lint imposé et une recette manuelle écrite |
 
 ## 8. Risques et mesures de réduction
 
@@ -160,10 +170,11 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | JSON absent ou corrompu | Moyenne | Élevé | Valeurs de configuration sûres et lecture de scores tolérante |
 | Régression du highscore | Faible | Élevé | Service Pydantic unique utilisé par le moteur et toute l'UI |
 | IA trop difficile | Faible | Élevé | Modes classiques, fuite BFS et fantômes réellement plus lents |
-| Collision ressentie comme injuste | Faible | Élevé | Distance ramenée à 55 % d'une case et couverte par des tests |
+| Collision ressentie comme injuste | Faible | Élevé | Distance ramenée à 55 % d'une case et scénario rejoué à la main |
 | Fenêtre trop grande selon l'écran | Faible | Moyen | Référence 1000×1500 réduite uniformément à 90 % de l'écran avec polices et maze proportionnels |
-| Maze injouable | Faible | Élevé | Vérification des dimensions, murs, coordonnées et shortest path |
-| Régression lors de l'intégration | Moyenne | Élevé | pytest, flake8, mypy et tests manuels avant fusion |
+| Maze injouable | Faible | Élevé | Vérification des dimensions, murs, coordonnées et shortest path, plus `make maze-check` |
+| Régression lors de l'intégration | Moyenne | Élevé | `make lint`, `make config-check`, `make maze-check` et recette manuelle avant fusion |
+| Absence de filet automatisé | Moyenne | Moyen | Recette manuelle écrite et rejouée intégralement avant chaque livraison |
 | Packaging tardif | Moyenne | Élevé | Réserver un lot dédié avant la remise et tester sur machine propre |
 | Blocage du push SSH GitHub | Moyenne | Moyen | Vérifier la clé, les droits et le remote avant la livraison |
 
@@ -180,25 +191,21 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Partie perdue avant de jouer | Collision répétée pendant l'animation de mort | Bloquer les nouvelles collisions et faire rentrer les fantômes à pied |
 | Fenêtre mal adaptée | Dimensions, polices et contenu mis à l'échelle séparément | Appliquer une échelle commune depuis la référence 1000×1500 |
 | Option perfect incohérente | Possibilité d'activer un mode non souhaité | Retirer l'option et toujours passer `perfect=False` |
+| Dépôt encombré de fichiers non notés | Suite de test conservée par habitude | Supprimer `tests/`, retirer la cible `test` et nettoyer la documentation |
 
-## 10. Plan de tests d'acceptation
+## 10. Plan d'acceptation
 
-### Tests automatisés
+### Vérifications outillées
 
-| Critère | Test ou commande | État |
+| Critère | Commande | État |
 | --- | --- | --- |
-| Configuration valide et valeurs de secours | `tests/test_config.py` | Couvert |
-| Initialisation et règles générales | `tests/test_game.py` | Couvert |
-| Placement et dimensions | `tests/test_game_layout.py` | Couvert |
-| Victoire et défaite | `tests/test_game_outcome.py` | Couvert |
-| Quatre fantômes et rendu | `tests/test_ghost_display.py` | Couvert |
-| BFS, cibles, modes et collisions | `tests/test_ghosts.py` | Couvert |
-| Lecture, validation, UI et top 10 | `tests/test_highscores.py` | Couvert |
-| Cheat mode et contrôles | `tests/test_cheats.py` | Couvert |
-| Timer et pause | `tests/test_level_timer.py` | Couvert |
-| Page de génération | `tests/test_maze_generator_page.py` | Couvert |
-| Suite complète | `make test` | 88 tests validés le 15 août 2026 |
-| Style et types | `make lint-strict` | flake8 et mypy strict validés le 15 août 2026 |
+| Style flake8 imposé par le sujet | `make lint` | Validé le 19 août 2026 |
+| Types mypy avec les flags imposés | `make lint` | Validé le 19 août 2026 |
+| Vérification renforcée optionnelle | `make lint-strict` | Validé le 19 août 2026 |
+| Chargement et repli de la configuration | `make config-check` | Validé le 19 août 2026 |
+| Génération et chemin du labyrinthe | `make maze-check` | Validé le 19 août 2026 |
+| Installation depuis un dépôt propre | `make fclean && make install` | À revalider avant la remise |
+| Package local | `make package` | Build macOS ARM64 validé localement |
 
 ### Recette manuelle finale
 
@@ -207,15 +214,18 @@ fantômes et les règles finales ont été intégrés après le premier jeu joua
 | Lancer avec `make run` | Fenêtre centrée, écran d'accueil, aucun traceback | À revalider |
 | Jouer avec les flèches | Pacman suit les couloirs et ne traverse pas les murs | À revalider |
 | Manger une super-pacgum | Tous les fantômes actifs deviennent mangeables temporairement | À revalider |
-| Toucher un fantôme actif | Une seule vie perdue, puis retour BFS des fantômes vers leurs coins pendant trois secondes | Couvert automatiquement |
+| Toucher un fantôme actif | Une seule vie perdue, puis retour BFS des fantômes vers leurs coins pendant trois secondes | À revalider |
+| Observer les quatre fantômes | Quatre sprites distincts, cibles différentes, vitesse inférieure à Pacman | À revalider |
 | Perdre toutes les vies | Écran de défaite puis saisie du score | À revalider |
 | Vider tous les niveaux | Écran de victoire distinct | À revalider |
 | Attendre la fin du timer | Défaite propre à zéro seconde | À revalider |
 | Mettre le jeu en pause | Timer et modes fantômes ne progressent pas | À revalider |
 | Générer depuis le menu | Nouveau maze non parfait et partie immédiate | À revalider |
-| Liste contenant 0 à 9 scores | Un nouveau score valide complète la liste jusqu'à dix entrées | Couvert automatiquement |
+| Liste contenant 0 à 9 scores | Un nouveau score valide complète la liste jusqu'à dix entrées | À revalider |
+| Fichier de scores absent, vide ou corrompu | Classement vide avec un warning lisible, aucun crash | À revalider |
+| Cheat mode activé dans la configuration | Les contrôles d'évaluation documentés répondent | À revalider |
 | JSON de configuration invalide | Warnings lisibles et valeurs sûres | À revalider |
-| Package local | Build macOS ARM64 et lancement sans argument | Couvert localement |
+| Argument manquant ou fichier introuvable | Message clair sans traceback | À revalider |
 | Package téléchargé | Le jeu démarre depuis la plateforme sans environnement de développement | À faire après upload |
 
 ## 11. Blocages et conflits
@@ -227,9 +237,9 @@ compatibilité mypy de la bibliothèque de maze, mise à l'échelle Pygame et
 équilibrage de l'IA.
 
 Quand une modification moteur affecte le rendu, le responsable explique le
-nouveau contrat puis les deux membres testent l'intégration. En cas de
-désaccord, l'équipe choisit d'abord la solution qui respecte le sujet, puis la
-plus simple à lire et à maintenir.
+nouveau contrat puis les deux membres vérifient l'intégration en jouant. En
+cas de désaccord, l'équipe choisit d'abord la solution qui respecte le sujet,
+puis la plus simple à lire et à maintenir.
 
 ## 12. Definition of Done
 
@@ -237,9 +247,8 @@ Une tâche est terminée lorsque :
 
 - son comportement correspond au ticket et au sujet ;
 - les erreurs usuelles sont gérées sans crash visible ;
-- les tests concernés passent ;
 - `make lint` ne signale pas de nouvelle erreur ;
-- le jeu a été testé manuellement si la tâche touche l'affichage ;
+- le scénario concerné de la recette manuelle a été rejoué avec succès ;
 - la documentation et le mapping MLX sont mis à jour si nécessaire ;
 - le code est relu par l'autre membre lorsqu'il traverse la frontière
   moteur/interface ;

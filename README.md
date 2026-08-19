@@ -35,7 +35,7 @@ The remaining external release step is documented in
 - a graphical desktop environment
 - the assigned `mazegenerator-*.whl` file at the repository root
 
-Pygame, Pydantic, pytest, flake8, and mypy are installed by the Makefile.
+Pygame, Pydantic, flake8, and mypy are installed by the Makefile.
 
 ### Installation
 
@@ -89,13 +89,22 @@ make run CONFIG=path/to/another-config.json
 ### Quality checks
 
 ```bash
-make test
 make lint
+make config-check
+make maze-check
 ```
 
-`make test` runs the pytest suite. `make lint` runs the exact flake8 and mypy
-checks requested by the subject. `make lint-strict` also passes by limiting
-the missing-stub exception to the supplied `mazegenerator` package.
+`make lint` runs the exact flake8 and mypy checks requested by the subject.
+`make lint-strict` also passes by limiting the missing-stub exception to the
+supplied `mazegenerator` package. `make config-check` loads the configuration
+and reports the number of levels, and `make maze-check` generates one maze and
+reports its dimensions and shortest path, so both confirm the data layer
+without starting a window.
+
+The subject states that test programs are neither submitted nor graded, so the
+repository ships no test suite. Behavior is verified through the checks above
+and the manual acceptance scenarios listed in the
+[project-management document](docs/project-management/README.md).
 
 Useful maintenance targets are `make clean`, `make fclean`, and `make re`.
 
@@ -278,10 +287,10 @@ Important paths:
 | `pacman/game/ghosts/` | Ghost models, BFS, modes, and individual targets |
 | `pacman/ui/` | Pygame pages, rendering, sprites, HUD, and modals |
 | `pacman/highscores.py` | Robust validated highscore service |
-| `tests/` | Automated behavior and regression tests |
 | `assets/` | Sprite sheet and game font |
 | `data/` | Runtime score data |
-| `docs/project-management/` | Planning, ownership, risks, tests, and progress |
+| `packaging/` | Files bundled with the standalone build |
+| `docs/project-management/` | Planning, ownership, risks, acceptance plan, and progress |
 
 The main data flow is:
 
@@ -313,9 +322,9 @@ acceptance plan, and current blockers are recorded in the
 
 AI assistance was used to structure the project plan, explain JSON and
 Pydantic concepts, diagnose Git and mypy errors, draft parts of the ghost AI,
-cheat controls, tests, packaging, and documentation, and perform the final
-subject audit. The team reviewed, adapted, ran, and tested the resulting code
-and remains responsible for every submitted part.
+cheat controls, packaging, and documentation, and perform the final subject
+audit. The team reviewed, adapted, ran, and played the resulting code and
+remains responsible for every submitted part.
 
 ## Packaging
 
@@ -332,7 +341,7 @@ the controls. Zip the complete `dist/pac-man/` directory for distribution.
 
 ## Release Validation
 
-The source, automated checks, and macOS ARM64 package are prepared locally.
+The source, quality checks, and macOS ARM64 package are prepared locally.
 Before the final defense, upload the complete archive as a free unlisted build
 on Itch.io (or another gaming platform), download it on a clean machine, and
 complete one manual victory and defeat scenario from that downloaded build.
