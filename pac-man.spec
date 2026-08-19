@@ -41,6 +41,9 @@ datas = [
     # Config dediee au build (pas le config.json de dev)
     (str(PACKAGING_DIR / "config.json"), "."),
 
+    # Fichier de scores
+    (str(PACKAGING_DIR / "scores.json"), "."),
+
     # Instructions minimales demandees dans le package livre
     (str(PACKAGING_DIR / "README.txt"), "."),
 ]

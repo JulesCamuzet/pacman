@@ -1,7 +1,7 @@
 # Pacman configuration.
 # The first level is fixed; seed 0 makes later levels random.
 {
-  "highscore_filename": "scores.json",
+  "highscore_filename": "_internal/scores.json",
   "lives": 3,
   "pacgum": 20000,
   "points_per_pacgum": 10,
